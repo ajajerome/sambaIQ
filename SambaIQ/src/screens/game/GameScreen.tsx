@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Rect, Circle, Line, Text as SvgText } from 'react-native-svg';
 import VirtualJoystick from '../../components/common/VirtualJoystick';
+import ShootButton from '../../components/common/ShootButton';
 
 const { width, height } = Dimensions.get('window');
 const PITCH_WIDTH = width - 40;
@@ -51,43 +52,77 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
   });
 
   const [playerPosition, setPlayerPosition] = useState(scenario.setup.playerPosition);
-  const [gameState, setGameState] = useState<'playing' | 'success' | 'fail'>('playing');
+  const [gameState, setGameState] = useState<'playing' | 'shooting' | 'success' | 'fail'>('playing');
   const [showSolution, setShowSolution] = useState(false);
   const [isMoving, setIsMoving] = useState(false);
+  const [ballPosition, setBallPosition] = useState(scenario.setup.ballPosition);
 
   // Animated values för smooth rörelse
   const playerAnim = useRef(new Animated.ValueXY(scenario.setup.playerPosition)).current;
+  const ballAnim = useRef(new Animated.ValueXY(scenario.setup.ballPosition)).current;
   const moveIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Uppdatera playerPosition när animationen ändras
-    const listenerId = playerAnim.addListener(({ x, y }) => {
+    const playerListenerId = playerAnim.addListener(({ x, y }) => {
       setPlayerPosition({ x, y });
       
-      // Kolla om spelaren är nära målet
-      const distance = Math.sqrt(
-        Math.pow(x - scenario.setup.targetArea.x, 2) + 
-        Math.pow(y - scenario.setup.targetArea.y, 2)
-      );
-
-      if (distance < scenario.setup.targetArea.radius && gameState === 'playing') {
-        setGameState('success');
-        setShowSolution(true);
-        setIsMoving(false);
-        if (moveIntervalRef.current) {
-          clearInterval(moveIntervalRef.current);
-          moveIntervalRef.current = null;
-        }
+      // Uppdatera boll position för att följa spelaren (när inte shooting)
+      if (gameState === 'playing') {
+        setBallPosition({ x, y });
+        ballAnim.setValue({ x, y });
       }
     });
 
+    // Uppdatera ballPosition när boll animationen ändras
+    const ballListenerId = ballAnim.addListener(({ x, y }) => {
+      setBallPosition({ x, y });
+    });
+
     return () => {
-      playerAnim.removeListener(listenerId);
+      playerAnim.removeListener(playerListenerId);
+      ballAnim.removeListener(ballListenerId);
       if (moveIntervalRef.current) {
         clearInterval(moveIntervalRef.current);
       }
     };
   }, [gameState]);
+
+  const handleShoot = () => {
+    if (gameState !== 'playing') return;
+    
+    setGameState('shooting');
+    
+    // Stoppa spelaren
+    if (moveIntervalRef.current) {
+      clearInterval(moveIntervalRef.current);
+      moveIntervalRef.current = null;
+    }
+    setIsMoving(false);
+    
+    // Beräkna riktning mot målet (höger sida av planen)
+    const goalX = 85; // Mål position
+    const goalY = 50; // Center av målet
+    
+    // Animera bollen mot målet
+    Animated.timing(ballAnim, {
+      toValue: { x: goalX, y: goalY },
+      duration: 800,
+      useNativeDriver: false,
+    }).start(() => {
+      // När bollen når målet
+      setGameState('success');
+      setShowSolution(true);
+    });
+  };
+
+  const isPlayerNearBall = () => {
+    const distance = Math.sqrt(
+      Math.pow(playerPosition.x - ballPosition.x, 2) + 
+      Math.pow(playerPosition.y - ballPosition.y, 2)
+    );
+    return distance < 8; // Spelaren måste vara nära bollen för att skjuta
+  };
 
   const handleJoystickMove = (direction: { x: number; y: number }) => {
     if (gameState !== 'playing') return;
@@ -123,7 +158,9 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
 
   const resetScenario = () => {
     setPlayerPosition(scenario.setup.playerPosition);
+    setBallPosition(scenario.setup.ballPosition);
     playerAnim.setValue(scenario.setup.playerPosition);
+    ballAnim.setValue(scenario.setup.ballPosition);
     setGameState('playing');
     setShowSolution(false);
   };
@@ -209,11 +246,11 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
         strokeWidth={2}
       />
       
-      {/* Boll */}
+      {/* Boll (separat från spelare) */}
       <Circle
-        cx={PITCH_WIDTH * scenario.setup.ballPosition.x / 100}
-        cy={PITCH_HEIGHT * scenario.setup.ballPosition.y / 100}
-        r={6}
+        cx={PITCH_WIDTH * ballPosition.x / 100}
+        cy={PITCH_HEIGHT * ballPosition.y / 100}
+        r={8}
         fill="#fff"
         stroke="#000"
         strokeWidth={1}
@@ -272,7 +309,10 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
       <View style={styles.instructionContainer}>
         <Text style={styles.instructionText}>{scenario.description}</Text>
         {gameState === 'playing' && (
-          <Text style={styles.hintText}>🕹️ Använd joysticken för att styra spelaren!</Text>
+          <Text style={styles.hintText}>🕹️ Styr spelaren nära bollen och tryck SKOTT!</Text>
+        )}
+        {gameState === 'shooting' && (
+          <Text style={styles.hintText}>⚽ Bollen flyger mot målet...</Text>
         )}
       </View>
 
@@ -289,6 +329,14 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
             onMove={handleJoystickMove}
             onStop={handleJoystickStop}
             size={120}
+          />
+        </View>
+        
+        {/* Shoot Button (bottom right like FIFA Mobile) */}
+        <View style={styles.shootButtonOverlay}>
+          <ShootButton
+            onShoot={handleShoot}
+            disabled={!isPlayerNearBall() || gameState !== 'playing'}
           />
         </View>
       </View>
@@ -374,6 +422,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 30,
     left: 30,
+    zIndex: 10,
+  },
+  shootButtonOverlay: {
+    position: 'absolute',
+    bottom: 30,
+    right: 30,
     zIndex: 10,
   },
   pitch: {
