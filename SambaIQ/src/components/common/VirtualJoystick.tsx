@@ -10,11 +10,13 @@ interface VirtualJoystickProps {
 const VirtualJoystick: React.FC<VirtualJoystickProps> = ({ 
   onMove, 
   onStop, 
-  size = 120 
+  size = 140 // FIFA Mobile style size
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const knobAnim = useRef(new Animated.ValueXY()).current;
-  const knobRadius = size * 0.3;
+  const opacityAnim = useRef(new Animated.Value(0.6)).current;
+  
+  const knobRadius = size * 0.25; // Smaller knob like FIFA
   const containerRadius = size * 0.5;
 
   const panResponder = PanResponder.create({
@@ -23,6 +25,14 @@ const VirtualJoystick: React.FC<VirtualJoystickProps> = ({
 
     onPanResponderGrant: () => {
       setIsDragging(true);
+      
+      // Fade in when active (FIFA style)
+      Animated.timing(opacityAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: false,
+      }).start();
+      
       knobAnim.setOffset({
         x: (knobAnim.x as any)._value,
         y: (knobAnim.y as any)._value,
@@ -60,11 +70,18 @@ const VirtualJoystick: React.FC<VirtualJoystickProps> = ({
       setIsDragging(false);
       knobAnim.flattenOffset();
       
+      // Fade out när inactive (FIFA style)
+      Animated.timing(opacityAnim, {
+        toValue: 0.6,
+        duration: 200,
+        useNativeDriver: false,
+      }).start();
+      
       // Animera tillbaka till center
       Animated.spring(knobAnim, {
         toValue: { x: 0, y: 0 },
         useNativeDriver: false,
-        tension: 150,
+        tension: 200,
         friction: 8,
       }).start();
       
@@ -73,12 +90,28 @@ const VirtualJoystick: React.FC<VirtualJoystickProps> = ({
   });
 
   return (
-    <View style={[styles.container, { width: size, height: size }]}>
-      {/* Outer Circle */}
-      <View style={[styles.outerCircle, { 
+    <Animated.View 
+      style={[
+        styles.container, 
+        { 
+          width: size, 
+          height: size,
+          opacity: opacityAnim 
+        }
+      ]}
+    >
+      {/* Outer Ring - FIFA Mobile style */}
+      <View style={[styles.outerRing, { 
         width: size, 
         height: size,
         borderRadius: size / 2 
+      }]} />
+      
+      {/* Inner guidance circle */}
+      <View style={[styles.innerRing, { 
+        width: size * 0.7, 
+        height: size * 0.7,
+        borderRadius: size * 0.35 
       }]} />
       
       {/* Knob */}
@@ -95,9 +128,9 @@ const VirtualJoystick: React.FC<VirtualJoystickProps> = ({
         ]}
         {...panResponder.panHandlers}
       >
-        <View style={styles.knobInner} />
+        <View style={styles.knobCenter} />
       </Animated.View>
-    </View>
+    </Animated.View>
   );
 };
 
@@ -107,16 +140,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'relative',
   },
-  outerCircle: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderWidth: 3,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
+  outerRing: {
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    position: 'absolute',
+  },
+  innerRing: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     position: 'absolute',
   },
   knob: {
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(0, 176, 79, 0.8)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
@@ -125,12 +166,14 @@ const styles = StyleSheet.create({
   },
   knobActive: {
     backgroundColor: '#00B04F',
+    borderColor: '#fff',
+    transform: [{ scale: 1.1 }],
   },
-  knobInner: {
-    width: '50%',
-    height: '50%',
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    borderRadius: 999,
+  knobCenter: {
+    width: 8,
+    height: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    borderRadius: 4,
   },
 });
 

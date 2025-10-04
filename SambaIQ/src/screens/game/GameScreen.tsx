@@ -276,21 +276,20 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
         )}
       </View>
 
-      {/* Game Area */}
+      {/* Game Area - FIFA Mobile Style */}
       <View style={styles.gameArea}>
-        {/* Fotbollsplan */}
+        {/* Fotbollsplan (full screen) */}
         <View style={styles.pitchContainer}>
           {renderFootballPitch()}
         </View>
         
-        {/* Joystick Controls */}
-        <View style={styles.controlsContainer}>
+        {/* Joystick Overlay (bottom left like FIFA Mobile) */}
+        <View style={styles.joystickOverlay}>
           <VirtualJoystick
             onMove={handleJoystickMove}
             onStop={handleJoystickStop}
-            size={100}
+            size={120}
           />
-          <Text style={styles.joystickLabel}>Styr spelaren</Text>
         </View>
       </View>
 
@@ -365,24 +364,17 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 20,
   },
   gameArea: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    position: 'relative',
   },
-  controlsContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingLeft: 20,
-  },
-  joystickLabel: {
-    marginTop: 10,
-    fontSize: 12,
-    color: '#7F8C8D',
-    textAlign: 'center',
+  joystickOverlay: {
+    position: 'absolute',
+    bottom: 30,
+    left: 30,
+    zIndex: 10,
   },
   pitch: {
     backgroundColor: '#00B04F',
