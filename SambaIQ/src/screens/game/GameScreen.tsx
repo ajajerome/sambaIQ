@@ -6,7 +6,6 @@ import {
   SafeAreaView, 
   TouchableOpacity,
   Dimensions,
-  PanGestureHandler,
   Animated
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -248,11 +247,15 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
 
       {/* Fotbollsplan */}
       <View style={styles.pitchContainer}>
-        <PanGestureHandler onGestureEvent={({ nativeEvent }) => handlePlayerMove(nativeEvent)}>
-          <View>
-            {renderFootballPitch()}
-          </View>
-        </PanGestureHandler>
+        <TouchableOpacity
+          activeOpacity={1}
+          onPressIn={(event) => {
+            const { locationX, locationY } = event.nativeEvent;
+            handlePlayerMove({ absoluteX: locationX + 20, absoluteY: locationY + 200 });
+          }}
+        >
+          {renderFootballPitch()}
+        </TouchableOpacity>
       </View>
 
       {/* Success Modal */}
