@@ -58,6 +58,64 @@ export const scenarios = {
       quote: "Som Xavi sa: 'Fotboll handlar om att hitta den fria spelaren.'",
       tip: 'Kolla alltid runt dig efter fria lagkamrater innan du bestämmer dig!'
     }
+  },
+
+  'scenario_3': {
+    id: 'scenario_3',
+    title: 'Smart Försvar',
+    description: 'Motståndaren anfaller med bollen. Du är back. Var ska du positionera dig?',
+    ageGroup: '10-12',
+    difficulty: 3,
+    xp: 100,
+    type: 'theory_practice', // Ny typ!
+    question: {
+      text: 'Du är back och anfallaren springer mot dig med bollen. Var ska du stå för bäst försvar?',
+      context: 'Försvarsprincipen - Grundläggande positionering',
+      options: [
+        {
+          id: 'A',
+          text: '🏃‍♂️ Springa rakt mot bollen',
+          isCorrect: false,
+          explanation: 'Nej, då blir du lätt att passera med en körning eller pass.'
+        },
+        {
+          id: 'B', 
+          text: '🛡️ Stå mellan boll och mål',
+          isCorrect: true,
+          explanation: 'Rätt! Du täcker den farligaste vägen och tvingar anfallaren till svårare alternativ.'
+        },
+        {
+          id: 'C',
+          text: '👀 Backa mot mållinjen',
+          isCorrect: false,
+          explanation: 'Nej, då ger du anfallaren för mycket utrymme att accelerera.'
+        }
+      ]
+    },
+    setup: {
+      playerPosition: { x: 30, y: 60 }, // Start position (fel position)
+      ballPosition: { x: 15, y: 45 }, 
+      goalkeeperPosition: { x: 50, y: 95 },
+      targetArea: { x: 35, y: 70, radius: 12 }, // Rätt defensive position
+      teammates: [],
+      opponents: [
+        { id: 'attacker1', position: { x: 15, y: 45 }, hasBall: true }
+      ],
+      markings: [
+        { type: 'zone', x: 35, y: 70, width: 20, height: 15, color: '#FFD700' },
+        { type: 'arrow', x: 30, y: 60, direction: 135, color: '#00B04F' }
+      ]
+    },
+    correctSolution: {
+      action: 'position',
+      targetX: 35,
+      targetY: 70,
+      explanation: 'Perfekt defensiv positionering! Du täcker vägen till mål och tvingar anfallaren att välja sämre alternativ. Det här är proaktivt försvarsspel!'
+    },
+    coaching: {
+      quote: "Som Paolo Maldini sa: 'Det bästa försvaret är att läsa spelet innan det händer.'",
+      tip: 'Täck alltid den farligaste linjen - vägen till mål!'
+    }
   }
 };
 
