@@ -6,7 +6,8 @@ import {
   SafeAreaView, 
   TouchableOpacity,
   Dimensions,
-  Animated
+  Animated,
+  StatusBar
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Rect, Circle, Line, Text as SvgText } from 'react-native-svg';
@@ -16,8 +17,9 @@ import PassButton from '../../components/common/PassButton';
 import { scenarios, ScenarioType } from '../../data/scenarios';
 
 const { width, height } = Dimensions.get('window');
-const PITCH_WIDTH = width - 40;
-const PITCH_HEIGHT = PITCH_WIDTH * 0.68; // Standard fotbollsplan proportioner
+// Landscape orientation - use full width for pitch
+const PITCH_WIDTH = Math.max(width, height) - 60; // Större plan i landscape
+const PITCH_HEIGHT = PITCH_WIDTH * 0.6; // Bättre ratio för landscape
 
 interface GameScreenProps {
   navigation: any;
@@ -153,15 +155,34 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
       clearInterval(moveIntervalRef.current);
     }
     
+    // FIFA Mobile style movement improvements
+    const deadZone = 0.15; // Mindre känslighet i center
+    const magnitude = Math.sqrt(direction.x * direction.x + direction.y * direction.y);
+    
+    if (magnitude < deadZone) {
+      setIsMoving(false);
+      return;
+    }
+    
+    // Normalize direction och applicera smooth acceleration
+    const normalizedX = direction.x / magnitude;
+    const normalizedY = direction.y / magnitude;
+    
+    // Speed baserat på avstånd från center (längre ut = snabbare)
+    const speedMultiplier = Math.min(magnitude * 1.5, 1.0);
+    
     // Start continuous movement
     moveIntervalRef.current = setInterval(() => {
       const currentX = (playerAnim.x as any)._value;
       const currentY = (playerAnim.y as any)._value;
       
-      // Speed of movement (adjust as needed)
-      const speed = 2;
-      const newX = Math.max(5, Math.min(95, currentX + (direction.x * speed)));
-      const newY = Math.max(5, Math.min(95, currentY + (direction.y * speed)));
+      // FIFA Mobile style: Variable speed och smooth movement  
+      const baseSpeed = 1.5;
+      const currentSpeed = baseSpeed * speedMultiplier;
+      
+      // Landscape orientation: X = höger/vänster, Y = upp/ner
+      const newX = Math.max(5, Math.min(95, currentX + (normalizedX * currentSpeed)));
+      const newY = Math.max(10, Math.min(90, currentY + (normalizedY * currentSpeed)));
       
       playerAnim.setValue({ x: newX, y: newY });
     }, 16); // ~60fps
@@ -185,8 +206,12 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
   };
 
   const nextScenario = () => {
-    // I produktion: navigera till nästa scenario eller tillbaka till PlayScreen
-    navigation.goBack();
+    // Smart navigation - gå till nästa scenario i landscape mode
+    const currentScenarioId = scenario.id;
+    const nextId = currentScenarioId === 'scenario_1' ? 'scenario_2' : 'scenario_1'; // Cycle för nu
+    
+    // Navigera till nästa scenario utan att lämna landscape mode
+    navigation.replace('Game', { scenarioId: nextId });
   };
 
   const renderFootballPitch = () => (
@@ -339,83 +364,103 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#2C3E50" />
+      <StatusBar hidden={true} /> {/* Hide status bar in landscape gaming */}
+      
+      {/* Compact Header för Landscape */}
+      <View style={styles.compactHeader}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={20} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{scenario.title}</Text>
-        <TouchableOpacity onPress={resetScenario}>
-          <Ionicons name="refresh" size={24} color="#2C3E50" />
+        
+        <View style={styles.headerInfo}>
+          <Text style={styles.scenarioTitle}>{scenario.title}</Text>
+          <Text style={styles.scenarioXP}>{scenario.xp} XP</Text>
+        </View>
+        
+        <TouchableOpacity onPress={resetScenario} style={styles.resetButton}>
+          <Ionicons name="refresh" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
 
-      {/* Instruktioner */}
-      <View style={styles.instructionContainer}>
-        <Text style={styles.instructionText}>{scenario.description}</Text>
-        {gameState === 'playing' && (
-          <Text style={styles.hintText}>🕹️ Styr spelaren nära bollen och tryck SKOTT!</Text>
-        )}
-        {gameState === 'shooting' && (
-          <Text style={styles.hintText}>⚽ Bollen flyger mot målet...</Text>
-        )}
-      </View>
-
-      {/* Game Area - FIFA Mobile Style */}
+      {/* Main Game Area - Landscape Optimized */}
       <View style={styles.gameArea}>
-        {/* Fotbollsplan (full screen) */}
+        {/* Fotbollsplan (centered) */}
         <View style={styles.pitchContainer}>
           {renderFootballPitch()}
+          
+          {/* Overlay Instructions - Minimalistic */}
+          {gameState === 'playing' && (
+            <View style={styles.instructionOverlay}>
+              <Text style={styles.quickHint}>
+                {scenario.type === 'shooting' ? '🕹️➡️⚽ Styr → Skjut' : '🕹️➡️🎯 Styr → Passa'}
+              </Text>
+            </View>
+          )}
+          
+          {gameState === 'shooting' && (
+            <View style={styles.instructionOverlay}>
+              <Text style={styles.quickHint}>⚽ Bollen på väg...</Text>
+            </View>
+          )}
         </View>
         
-        {/* Joystick Overlay (bottom left like FIFA Mobile) */}
-        <View style={styles.joystickOverlay}>
-          <VirtualJoystick
-            onMove={handleJoystickMove}
-            onStop={handleJoystickStop}
-            size={120}
-          />
-        </View>
-        
-        {/* Action Buttons (bottom right like FIFA Mobile) */}
-        <View style={styles.actionButtonsOverlay}>
-          {scenario.type === 'shooting' && (
-            <ShootButton
-              onShoot={handleShoot}
-              disabled={!isPlayerNearBall() || gameState !== 'playing'}
+        {/* Controls Overlay */}
+        <View style={styles.controlsOverlay}>
+          {/* Joystick (bottom left) */}
+          <View style={styles.joystickOverlay}>
+            <VirtualJoystick
+              onMove={handleJoystickMove}
+              onStop={handleJoystickStop}
+              size={110} // Mindre i landscape
             />
-          )}
-          {scenario.type === 'passing' && (
-            <PassButton
-              onPass={handlePass}
-              disabled={!isPlayerNearBall() || gameState !== 'playing'}
-            />
-          )}
+          </View>
+          
+          {/* Action Buttons (bottom right) */}
+          <View style={styles.actionButtonsOverlay}>
+            {scenario.type === 'shooting' && (
+              <ShootButton
+                onShoot={handleShoot}
+                disabled={!isPlayerNearBall() || gameState !== 'playing'}
+              />
+            )}
+            {scenario.type === 'passing' && (
+              <PassButton
+                onPass={handlePass}
+                disabled={!isPlayerNearBall() || gameState !== 'playing'}
+              />
+            )}
+          </View>
         </View>
       </View>
 
-      {/* Success Modal */}
+      {/* Success Modal - Landscape Optimized */}
       {gameState === 'success' && (
         <View style={styles.successOverlay}>
-          <View style={styles.successModal}>
-            <Text style={styles.successEmoji}>🎉</Text>
-            <Text style={styles.successTitle}>MÅÅÅL!</Text>
-            <Text style={styles.successExplanation}>{scenario.correctSolution.explanation}</Text>
+          <View style={styles.successModalLandscape}>
+            <View style={styles.successContent}>
+              <Text style={styles.successEmoji}>🎉</Text>
+              <Text style={styles.successTitle}>
+                {scenario.type === 'shooting' ? 'MÅÅÅL!' : 'PERFEKT PASS!'}
+              </Text>
+              <Text style={styles.successExplanation}>{scenario.correctSolution.explanation}</Text>
+            </View>
             
-            <View style={styles.coachingSection}>
+            <View style={styles.rewardContent}>
+              <Text style={styles.rewardText}>+{scenario.xp} XP</Text>
               <Text style={styles.coachingQuote}>{scenario.coaching.quote}</Text>
-              <Text style={styles.coachingTip}>{scenario.coaching.tip}</Text>
             </View>
             
-            <View style={styles.rewardSection}>
-              <Text style={styles.rewardText}>+50 XP</Text>
-              <Text style={styles.badgeText}>🏆 Första Mål Badge!</Text>
+            <View style={styles.actionButtons}>
+              <TouchableOpacity style={styles.nextButton} onPress={nextScenario}>
+                <Text style={styles.nextButtonText}>Nästa Scenario</Text>
+                <Ionicons name="arrow-forward" size={18} color="#fff" />
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.repeatButton} onPress={resetScenario}>
+                <Text style={styles.repeatButtonText}>Spela Igen</Text>
+                <Ionicons name="refresh" size={18} color="#00B04F" />
+              </TouchableOpacity>
             </View>
-            
-            <TouchableOpacity style={styles.nextButton} onPress={nextScenario}>
-              <Text style={styles.nextButtonText}>Nästa Scenario</Text>
-              <Ionicons name="arrow-forward" size={20} color="#fff" />
-            </TouchableOpacity>
           </View>
         </View>
       )}
