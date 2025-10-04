@@ -6,11 +6,13 @@ import {
   Dimensions, 
   TouchableOpacity,
   ImageBackground,
-  Animated
+  Animated,
+  ScrollView
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { footballRegions, FootballRegion } from '../../data/regions';
 
 const { width, height } = Dimensions.get('window');
 
@@ -22,6 +24,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedAge, setSelectedAge] = useState<number | null>(null);
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
+  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
   const [playerName, setPlayerName] = useState('');
 
   const fadeAnim = new Animated.Value(1);
@@ -44,6 +47,12 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }) => {
       subtitle: 'Välj din favoritposition',
       description: 'Vi skapar scenarier baserade på din position',
       component: 'position'
+    },
+    {
+      title: 'Vilken fotbollskultur inspirerar dig? 🌍',
+      subtitle: 'Olika länder, olika filosofier',
+      description: 'Välj den approach som passar dig bäst',
+      component: 'region'
     },
     {
       title: 'Dags att börja! 🚀',
@@ -76,6 +85,20 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }) => {
       if (selectedPosition) {
         await AsyncStorage.setItem('user_position', selectedPosition);
       }
+      if (selectedRegion) {
+        await AsyncStorage.setItem('user_region', selectedRegion);
+        
+        // Spara kulturella inställningar
+        const region = footballRegions.find(r => r.id === selectedRegion);
+        if (region) {
+          const culturalSettings = {
+            region_id: selectedRegion,
+            specialization_approach: region.ageApproach.specialization,
+            position_focus_age: region.ageApproach.positionAge
+          };
+          await AsyncStorage.setItem('cultural_settings', JSON.stringify(culturalSettings));
+        }
+      }
       
       // Navigate to main app
       navigation.replace('Main');
@@ -102,7 +125,8 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }) => {
       case 0: return true;
       case 1: return selectedAge !== null;
       case 2: return selectedPosition !== null;
-      case 3: return true;
+      case 3: return selectedRegion !== null;
+      case 4: return true;
       default: return false;
     }
   };
@@ -186,12 +210,66 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }) => {
     </View>
   );
 
+  const renderRegionSelection = () => (
+    <View style={styles.contentContainer}>
+      <Text style={styles.title}>{onboardingSteps[currentStep].title}</Text>
+      <Text style={styles.description}>{onboardingSteps[currentStep].description}</Text>
+      
+      <ScrollView 
+        style={styles.regionScrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.regionContainer}
+      >
+        {footballRegions.map((region) => (
+          <TouchableOpacity
+            key={region.id}
+            style={[
+              styles.regionOption,
+              selectedRegion === region.id && styles.selectedRegionOption,
+              { borderColor: region.colors.primary }
+            ]}
+            onPress={() => setSelectedRegion(region.id)}
+          >
+            <View style={styles.regionHeader}>
+              <Text style={styles.regionFlag}>{region.flag}</Text>
+              <View style={styles.regionInfo}>
+                <Text style={[
+                  styles.regionName,
+                  selectedRegion === region.id && styles.selectedRegionText
+                ]}>
+                  {region.name}
+                </Text>
+                <Text style={styles.regionShort}>{region.shortName}</Text>
+              </View>
+              {selectedRegion === region.id && (
+                <Ionicons name="checkmark-circle" size={24} color={region.colors.primary} />
+              )}
+            </View>
+            
+            <Text style={styles.regionPhilosophy}>
+              {region.philosophy}
+            </Text>
+            
+            <View style={styles.regionDetails}>
+              <Text style={styles.regionAge}>
+                🎯 Positioner från: {region.ageApproach.positionAge} år
+              </Text>
+              <Text style={styles.regionFocus}>
+                ⚽ Fokus: {region.ageApproach.earlyFocus}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </View>
+  );
+
   const renderReady = () => (
     <View style={styles.contentContainer}>
       <Text style={styles.welcomeEmoji}>🎉</Text>
       <Text style={styles.title}>{onboardingSteps[currentStep].title}</Text>
       <Text style={styles.description}>
-        Perfekt! Du är {selectedAge} år och gillar att spela som {positions.find(p => p.id === selectedPosition)?.label.toLowerCase()}.
+        Perfekt! Du är {selectedAge} år, spelar {positions.find(p => p.id === selectedPosition)?.label.toLowerCase()}, och följer {footballRegions.find(r => r.id === selectedRegion)?.shortName} fotbollsfilosofi.
       </Text>
       <Text style={styles.description}>
         {onboardingSteps[currentStep].description}
@@ -204,6 +282,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }) => {
       case 'welcome': return renderWelcome();
       case 'age': return renderAgeSelection();
       case 'position': return renderPositionSelection();
+      case 'region': return renderRegionSelection();
       case 'ready': return renderReady();
       default: return renderWelcome();
     }
@@ -401,6 +480,79 @@ const styles = StyleSheet.create({
   nextIcon: {
     marginLeft: 10,
     color: '#00B04F',
+  },
+  
+  // Region Selection Styles
+  regionScrollView: {
+    flex: 1,
+    width: '100%',
+  },
+  regionContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  regionOption: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 15,
+    padding: 15,
+    marginVertical: 8,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  selectedRegionOption: {
+    backgroundColor: 'rgba(255, 255, 255, 1)',
+    borderWidth: 3,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  regionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  regionFlag: {
+    fontSize: 28,
+    marginRight: 12,
+  },
+  regionInfo: {
+    flex: 1,
+  },
+  regionName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2C3E50',
+  },
+  selectedRegionText: {
+    color: '#007AFF',
+  },
+  regionShort: {
+    fontSize: 14,
+    color: '#7F8C8D',
+    fontStyle: 'italic',
+  },
+  regionPhilosophy: {
+    fontSize: 14,
+    color: '#34495E',
+    lineHeight: 20,
+    marginBottom: 10,
+    fontWeight: '500',
+  },
+  regionDetails: {
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(52, 73, 94, 0.1)',
+    paddingTop: 10,
+  },
+  regionAge: {
+    fontSize: 12,
+    color: '#7F8C8D',
+    marginBottom: 2,
+  },
+  regionFocus: {
+    fontSize: 12,
+    color: '#7F8C8D',
   },
 });
 

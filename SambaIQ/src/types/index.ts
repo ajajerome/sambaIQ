@@ -9,6 +9,13 @@ export interface User {
   xp: number;
   streak_days: number;
   last_played: string;
+  preferred_position?: string;
+  football_region?: string;
+  cultural_settings?: {
+    region_id: string;
+    specialization_approach: 'early' | 'balanced' | 'late';
+    position_focus_age: number;
+  };
 }
 
 export interface QuestionOption {
