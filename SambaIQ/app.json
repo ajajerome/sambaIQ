@@ -42,8 +42,9 @@
     "scheme": "sambaiq",
     "extra": {
       "eas": {
-        "projectId": "your-project-id-here"
+        "projectId": "sambaiq-football-app"
       }
-    }
+    },
+    "owner": "ajajerome"
   }
 }
