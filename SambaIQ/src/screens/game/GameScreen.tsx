@@ -71,55 +71,48 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
   }, []);
 
   const handlePlayerMove = (gestureState: any) => {
-    if (!pitchRef.current) return;
+    // Enklare koordinat hantering utan measure
+    const touchX = gestureState.moveX || gestureState.pageX || 0;
+    const touchY = gestureState.moveY || gestureState.pageY || 0;
     
-    // Konvertera touch koordinater till plan koordinater
-    pitchRef.current.measure((fx, fy, width, height, px, py) => {
-      const touchX = gestureState.moveX - px;
-      const touchY = gestureState.moveY - py;
-      
-      // Konvertera till procent av plan
-      const newX = Math.max(5, Math.min(95, (touchX / PITCH_WIDTH) * 100));
-      const newY = Math.max(5, Math.min(95, (touchY / PITCH_HEIGHT) * 100));
-      
-      // Smooth animation till ny position
-      Animated.spring(playerAnim, {
-        toValue: { x: newX, y: newY },
-        useNativeDriver: false,
-        tension: 150,
-        friction: 8,
-        speed: 20,
-      }).start();
+    // Approximera position relativt till screen
+    const screenOffset = 100; // Ungefär var planen börjar
+    const newX = Math.max(10, Math.min(90, ((touchX - 40) / PITCH_WIDTH) * 100));
+    const newY = Math.max(10, Math.min(90, ((touchY - screenOffset) / PITCH_HEIGHT) * 100));
+    
+    // Direkt position update utan spring för bättre responsiveness
+    playerAnim.setValue({ x: newX, y: newY });
 
-      // Kolla om spelaren är nära målet
-      const distance = Math.sqrt(
-        Math.pow(newX - scenario.setup.targetArea.x, 2) + 
-        Math.pow(newY - scenario.setup.targetArea.y, 2)
-      );
+    // Kolla om spelaren är nära målet
+    const distance = Math.sqrt(
+      Math.pow(newX - scenario.setup.targetArea.x, 2) + 
+      Math.pow(newY - scenario.setup.targetArea.y, 2)
+    );
 
-      if (distance < scenario.setup.targetArea.radius && gameState === 'playing') {
-        setGameState('success');
-        setShowSolution(true);
-      }
-    });
+    if (distance < scenario.setup.targetArea.radius && gameState === 'playing') {
+      setGameState('success');
+      setShowSolution(true);
+    }
   };
 
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: () => true,
     
-    onPanResponderGrant: (evt) => {
+    onPanResponderGrant: (evt, gestureState) => {
       setIsDragging(true);
       handlePlayerMove({ moveX: evt.nativeEvent.pageX, moveY: evt.nativeEvent.pageY });
     },
     
-    onPanResponderMove: (evt) => {
+    onPanResponderMove: (evt, gestureState) => {
       handlePlayerMove({ moveX: evt.nativeEvent.pageX, moveY: evt.nativeEvent.pageY });
     },
     
     onPanResponderRelease: () => {
       setIsDragging(false);
     },
+    
+    onPanResponderTerminationRequest: () => false,
   });
 
   const resetScenario = () => {
