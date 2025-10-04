@@ -12,6 +12,8 @@ import { Ionicons } from '@expo/vector-icons';
 import Svg, { Rect, Circle, Line, Text as SvgText } from 'react-native-svg';
 import VirtualJoystick from '../../components/common/VirtualJoystick';
 import ShootButton from '../../components/common/ShootButton';
+import PassButton from '../../components/common/PassButton';
+import { scenarios, ScenarioType } from '../../data/scenarios';
 
 const { width, height } = Dimensions.get('window');
 const PITCH_WIDTH = width - 40;
@@ -29,27 +31,8 @@ interface GameScreenProps {
 const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
   const { scenarioId } = route.params;
   
-  // Mock scenario data - i produktion kommer detta från AI/Supabase
-  const [scenario] = useState({
-    id: scenarioId,
-    title: 'Ditt Första Mål',
-    description: 'Du har bollen framför målet. Målvakten är på fel sida. Dra din spelare mot det tomma hörnet för att göra mål!',
-    setup: {
-      playerPosition: { x: 50, y: 70 }, // Procent av plan
-      ballPosition: { x: 50, y: 70 },
-      goalkeeperPosition: { x: 30, y: 95 },
-      targetArea: { x: 70, y: 95, radius: 15 }
-    },
-    correctSolution: {
-      targetX: 70,
-      targetY: 95,
-      explanation: 'Perfekt! Du såg att målvakten var på fel sida och sköt mot det tomma hörnet. Det här är smart fotboll!'
-    },
-    coaching: {
-      quote: "Som Messi sa: 'Det handlar om att fatta rätt beslut på rätt tid.'",
-      tip: 'Titta alltid var målvakten är innan du skjuter!'
-    }
-  });
+  // Hämta scenario från data
+  const scenario: ScenarioType = scenarios[scenarioId as keyof typeof scenarios] || scenarios['scenario_1'];
 
   const [playerPosition, setPlayerPosition] = useState(scenario.setup.playerPosition);
   const [gameState, setGameState] = useState<'playing' | 'shooting' | 'success' | 'fail'>('playing');
@@ -89,7 +72,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
   }, [gameState]);
 
   const handleShoot = () => {
-    if (gameState !== 'playing') return;
+    if (gameState !== 'playing' || scenario.type !== 'shooting') return;
     
     setGameState('shooting');
     
@@ -114,6 +97,42 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
       setGameState('success');
       setShowSolution(true);
     });
+  };
+
+  const handlePass = () => {
+    if (gameState !== 'playing' || scenario.type !== 'passing') return;
+    
+    setGameState('shooting'); // Använd samma state för animation
+    
+    // Stoppa spelaren  
+    if (moveIntervalRef.current) {
+      clearInterval(moveIntervalRef.current);
+      moveIntervalRef.current = null;
+    }
+    setIsMoving(false);
+    
+    // Passa till lagkamrat
+    const teammate = scenario.setup.teammates?.[0];
+    if (teammate) {
+      // Animera bollen till lagkamraten
+      Animated.timing(ballAnim, {
+        toValue: { x: teammate.position.x, y: teammate.position.y },
+        duration: 600,
+        useNativeDriver: false,
+      }).start(() => {
+        // När bollen når lagkamraten - animera skott mot mål
+        setTimeout(() => {
+          Animated.timing(ballAnim, {
+            toValue: { x: 85, y: 50 }, // Mål
+            duration: 400,
+            useNativeDriver: false,
+          }).start(() => {
+            setGameState('success');
+            setShowSolution(true);
+          });
+        }, 200);
+      });
+    }
   };
 
   const isPlayerNearBall = () => {
@@ -246,6 +265,32 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
         strokeWidth={2}
       />
       
+      {/* Lagkamrater (gröna) */}
+      {scenario.setup.teammates?.map((teammate) => (
+        <Circle
+          key={teammate.id}
+          cx={PITCH_WIDTH * teammate.position.x / 100}
+          cy={PITCH_HEIGHT * teammate.position.y / 100}
+          r={12}
+          fill="#00B04F"
+          stroke="#fff"
+          strokeWidth={2}
+        />
+      ))}
+      
+      {/* Försvarare (röda) */}  
+      {scenario.setup.opponents?.map((opponent) => (
+        <Circle
+          key={opponent.id}
+          cx={PITCH_WIDTH * opponent.position.x / 100}
+          cy={PITCH_HEIGHT * opponent.position.y / 100}
+          r={12}
+          fill="#FF3B30"
+          stroke="#fff"
+          strokeWidth={2}
+        />
+      ))}
+      
       {/* Boll (separat från spelare) */}
       <Circle
         cx={PITCH_WIDTH * ballPosition.x / 100}
@@ -332,12 +377,20 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
           />
         </View>
         
-        {/* Shoot Button (bottom right like FIFA Mobile) */}
-        <View style={styles.shootButtonOverlay}>
-          <ShootButton
-            onShoot={handleShoot}
-            disabled={!isPlayerNearBall() || gameState !== 'playing'}
-          />
+        {/* Action Buttons (bottom right like FIFA Mobile) */}
+        <View style={styles.actionButtonsOverlay}>
+          {scenario.type === 'shooting' && (
+            <ShootButton
+              onShoot={handleShoot}
+              disabled={!isPlayerNearBall() || gameState !== 'playing'}
+            />
+          )}
+          {scenario.type === 'passing' && (
+            <PassButton
+              onPass={handlePass}
+              disabled={!isPlayerNearBall() || gameState !== 'playing'}
+            />
+          )}
         </View>
       </View>
 
@@ -424,7 +477,7 @@ const styles = StyleSheet.create({
     left: 30,
     zIndex: 10,
   },
-  shootButtonOverlay: {
+  actionButtonsOverlay: {
     position: 'absolute',
     bottom: 30,
     right: 30,

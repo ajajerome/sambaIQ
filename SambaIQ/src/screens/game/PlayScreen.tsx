@@ -24,7 +24,7 @@ const PlayScreen: React.FC<PlayScreenProps> = ({ navigation }) => {
   const scenarios = {
     recommended: [
       {
-        id: '1',
+        id: 'scenario_1',
         title: 'Ditt Första Mål',
         description: 'Du har bollen framför målet. Visa att du kan göra mål!',
         difficulty: 1,
@@ -46,6 +46,18 @@ const PlayScreen: React.FC<PlayScreenProps> = ({ navigation }) => {
         category: 'Lagarbete',
         estimatedTime: 3,
         isCompleted: true
+      },
+      {
+        id: 'scenario_2',
+        title: 'Hjälp din Kompis',
+        description: 'Din lagkamrat Marcus är helt fri framför mål! Passa bollen till honom.',
+        difficulty: 2,
+        xp: 75,
+        completedBy: 68,
+        ageGroup: '7-9',
+        category: 'Lagarbete',
+        estimatedTime: 3,
+        isCompleted: false
       },
       {
         id: '3',
