@@ -60,6 +60,18 @@ const PlayScreen: React.FC<PlayScreenProps> = ({ navigation }) => {
         isCompleted: false
       },
       {
+        id: 'scenario_3',
+        title: 'Smart Försvar',
+        description: 'Lär dig rätt defensiv positionering mot anfallare. Var ska du stå?',
+        difficulty: 3,
+        xp: 100,
+        completedBy: 42,
+        ageGroup: '10-12',
+        category: 'Taktik',
+        estimatedTime: 4,
+        isCompleted: false
+      },
+      {
         id: '3',
         title: 'Försvara Målet',
         description: 'Motståndaren anfaller! Stoppa dem från att göra mål.',

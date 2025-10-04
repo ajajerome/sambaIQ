@@ -14,6 +14,7 @@ import Svg, { Rect, Circle, Line, Text as SvgText } from 'react-native-svg';
 import VirtualJoystick from '../../components/common/VirtualJoystick';
 import ShootButton from '../../components/common/ShootButton';
 import PassButton from '../../components/common/PassButton';
+import QuestionScreen from '../../components/common/QuestionScreen';
 import { scenarios, ScenarioType } from '../../data/scenarios';
 
 const { width, height } = Dimensions.get('window');
@@ -37,7 +38,9 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
   const scenario: ScenarioType = scenarios[scenarioId as keyof typeof scenarios] || scenarios['scenario_1'];
 
   const [playerPosition, setPlayerPosition] = useState(scenario.setup.playerPosition);
-  const [gameState, setGameState] = useState<'playing' | 'shooting' | 'success' | 'fail'>('playing');
+  const [gameState, setGameState] = useState<'question' | 'playing' | 'shooting' | 'success' | 'fail'>(
+    scenario.type === 'theory_practice' ? 'question' : 'playing'
+  );
   const [showSolution, setShowSolution] = useState(false);
   const [isMoving, setIsMoving] = useState(false);
   const [ballPosition, setBallPosition] = useState(scenario.setup.ballPosition);
@@ -196,20 +199,54 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
     }
   };
 
+  const handleQuestionCorrect = () => {
+    // Övergång från fråga till praktisk del
+    setGameState('playing');
+  };
+
+  const handlePositionComplete = () => {
+    // Kontrollera om spelaren är inom target area för positioning scenarios
+    if (scenario.type === 'theory_practice') {
+      const targetArea = scenario.setup.targetArea;
+      const distance = Math.sqrt(
+        Math.pow(playerPosition.x - targetArea.x, 2) +
+        Math.pow(playerPosition.y - targetArea.y, 2)
+      );
+
+      if (distance <= targetArea.radius) {
+        setGameState('success');
+        setShowSolution(true);
+      }
+    }
+  };
+
+  // Auto-check positioning för theory_practice scenarios
+  useEffect(() => {
+    if (gameState === 'playing' && scenario.type === 'theory_practice') {
+      const timer = setTimeout(() => {
+        handlePositionComplete();
+      }, 500); // Check varje 500ms
+      return () => clearTimeout(timer);
+    }
+  }, [playerPosition, gameState, scenario.type]);
+
   const resetScenario = () => {
     setPlayerPosition(scenario.setup.playerPosition);
     setBallPosition(scenario.setup.ballPosition);
     playerAnim.setValue(scenario.setup.playerPosition);
     ballAnim.setValue(scenario.setup.ballPosition);
-    setGameState('playing');
+    setGameState(scenario.type === 'theory_practice' ? 'question' : 'playing');
     setShowSolution(false);
   };
 
   const nextScenario = () => {
     // Smart navigation - gå till nästa scenario i landscape mode
     const currentScenarioId = scenario.id;
-    const nextId = currentScenarioId === 'scenario_1' ? 'scenario_2' : 'scenario_1'; // Cycle för nu
-    
+    let nextId;
+    if (currentScenarioId === 'scenario_1') nextId = 'scenario_2';
+    else if (currentScenarioId === 'scenario_2') nextId = 'scenario_3';
+    else nextId = 'scenario_1'; // Cycle tillbaka
+
     // Navigera till nästa scenario utan att lämna landscape mode
     navigation.replace('Game', { scenarioId: nextId });
   };
@@ -303,28 +340,49 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
         />
       ))}
       
-      {/* Försvarare (röda) */}  
-      {scenario.setup.opponents?.map((opponent) => (
-        <Circle
-          key={opponent.id}
-          cx={PITCH_WIDTH * opponent.position.x / 100}
-          cy={PITCH_HEIGHT * opponent.position.y / 100}
-          r={12}
-          fill="#FF3B30"
-          stroke="#fff"
-          strokeWidth={2}
-        />
-      ))}
-      
-      {/* Boll (separat från spelare) */}
-      <Circle
-        cx={PITCH_WIDTH * ballPosition.x / 100}
-        cy={PITCH_HEIGHT * ballPosition.y / 100}
-        r={8}
-        fill="#fff"
-        stroke="#000"
-        strokeWidth={1}
-      />
+          {/* Försvarare (röda) */}
+          {scenario.setup.opponents?.map((opponent) => (
+            <Circle
+              key={opponent.id}
+              cx={PITCH_WIDTH * opponent.position.x / 100}
+              cy={PITCH_HEIGHT * opponent.position.y / 100}
+              r={12}
+              fill="#FF3B30"
+              stroke="#fff"
+              strokeWidth={2}
+            />
+          ))}
+
+          {/* Markings för theory_practice scenarios */}
+          {scenario.setup.markings?.map((marking, index) => {
+            if (marking.type === 'zone') {
+              return (
+                <Rect
+                  key={`marking-${index}`}
+                  x={PITCH_WIDTH * (marking.x - (marking.width || 0) / 2) / 100}
+                  y={PITCH_HEIGHT * (marking.y - (marking.height || 0) / 2) / 100}
+                  width={PITCH_WIDTH * (marking.width || 10) / 100}
+                  height={PITCH_HEIGHT * (marking.height || 10) / 100}
+                  fill={`${marking.color}40`}
+                  stroke={marking.color}
+                  strokeWidth={2}
+                  strokeDasharray="5,5"
+                />
+              );
+            }
+            // Andra markings kan läggas till här
+            return null;
+          })}
+
+          {/* Boll (separat från spelare) */}
+          <Circle
+            cx={PITCH_WIDTH * ballPosition.x / 100}
+            cy={PITCH_HEIGHT * ballPosition.y / 100}
+            r={8}
+            fill="#fff"
+            stroke="#000"
+            strokeWidth={1}
+          />
       
       {/* Spelare (animerad) */}
       <Animated.View
@@ -365,8 +423,22 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar hidden={true} /> {/* Hide status bar in landscape gaming */}
-      
-      {/* Compact Header för Landscape */}
+
+      {/* Theory Phase - Question Screen */}
+      {gameState === 'question' && scenario.type === 'theory_practice' && scenario.question && (
+        <QuestionScreen
+          question={scenario.question.text}
+          context={scenario.question.context}
+          options={scenario.question.options}
+          onCorrectAnswer={handleQuestionCorrect}
+          coaching={scenario.coaching}
+        />
+      )}
+
+      {/* Practice Phase - Game Screen */}
+      {gameState !== 'question' && (
+        <>
+          {/* Compact Header för Landscape */}
       <View style={styles.compactHeader}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={20} color="#fff" />
@@ -456,16 +528,18 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
                 <Ionicons name="arrow-forward" size={18} color="#fff" />
               </TouchableOpacity>
               
-              <TouchableOpacity style={styles.repeatButton} onPress={resetScenario}>
-                <Text style={styles.repeatButtonText}>Spela Igen</Text>
-                <Ionicons name="refresh" size={18} color="#00B04F" />
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity style={styles.repeatButton} onPress={resetScenario}>
+              <Text style={styles.repeatButtonText}>Spela Igen</Text>
+              <Ionicons name="refresh" size={18} color="#00B04F" />
+            </TouchableOpacity>
           </View>
         </View>
-      )}
-    </SafeAreaView>
-  );
+      </View>
+    )}
+  </>
+)}
+</SafeAreaView>
+);
 };
 
 const styles = StyleSheet.create({

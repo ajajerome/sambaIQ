@@ -11,6 +11,13 @@ export interface User {
   last_played: string;
 }
 
+export interface QuestionOption {
+  id: string;
+  text: string;
+  isCorrect: boolean;
+  explanation: string;
+}
+
 export interface Scenario {
   id: string;
   title: string;
