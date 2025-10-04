@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   View, 
   Text, 
@@ -6,7 +6,8 @@ import {
   SafeAreaView, 
   TouchableOpacity,
   Dimensions,
-  Animated
+  Animated,
+  PanResponder
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Rect, Circle, Line, Text as SvgText } from 'react-native-svg';
@@ -52,43 +53,74 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
   const [playerPosition, setPlayerPosition] = useState(scenario.setup.playerPosition);
   const [gameState, setGameState] = useState<'playing' | 'success' | 'fail'>('playing');
   const [showSolution, setShowSolution] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Animated values för smooth rörelse
-  const playerAnim = new Animated.ValueXY(scenario.setup.playerPosition);
+  const playerAnim = useRef(new Animated.ValueXY(scenario.setup.playerPosition)).current;
+  const pitchRef = useRef<View>(null);
 
   useEffect(() => {
     // Uppdatera playerPosition när animationen ändras
-    playerAnim.addListener(({ x, y }) => {
+    const listenerId = playerAnim.addListener(({ x, y }) => {
       setPlayerPosition({ x, y });
     });
 
     return () => {
-      playerAnim.removeAllListeners();
+      playerAnim.removeListener(listenerId);
     };
   }, []);
 
   const handlePlayerMove = (gestureState: any) => {
-    const newX = Math.max(0, Math.min(100, (gestureState.absoluteX - 20) / PITCH_WIDTH * 100));
-    const newY = Math.max(0, Math.min(100, (gestureState.absoluteY - 200) / PITCH_HEIGHT * 100));
+    if (!pitchRef.current) return;
     
-    Animated.spring(playerAnim, {
-      toValue: { x: newX, y: newY },
-      useNativeDriver: false,
-      tension: 100,
-      friction: 8,
-    }).start();
+    // Konvertera touch koordinater till plan koordinater
+    pitchRef.current.measure((fx, fy, width, height, px, py) => {
+      const touchX = gestureState.moveX - px;
+      const touchY = gestureState.moveY - py;
+      
+      // Konvertera till procent av plan
+      const newX = Math.max(5, Math.min(95, (touchX / PITCH_WIDTH) * 100));
+      const newY = Math.max(5, Math.min(95, (touchY / PITCH_HEIGHT) * 100));
+      
+      // Smooth animation till ny position
+      Animated.spring(playerAnim, {
+        toValue: { x: newX, y: newY },
+        useNativeDriver: false,
+        tension: 150,
+        friction: 8,
+        speed: 20,
+      }).start();
 
-    // Kolla om spelaren är nära målet
-    const distance = Math.sqrt(
-      Math.pow(newX - scenario.setup.targetArea.x, 2) + 
-      Math.pow(newY - scenario.setup.targetArea.y, 2)
-    );
+      // Kolla om spelaren är nära målet
+      const distance = Math.sqrt(
+        Math.pow(newX - scenario.setup.targetArea.x, 2) + 
+        Math.pow(newY - scenario.setup.targetArea.y, 2)
+      );
 
-    if (distance < scenario.setup.targetArea.radius && gameState === 'playing') {
-      setGameState('success');
-      setShowSolution(true);
-    }
+      if (distance < scenario.setup.targetArea.radius && gameState === 'playing') {
+        setGameState('success');
+        setShowSolution(true);
+      }
+    });
   };
+
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    
+    onPanResponderGrant: (evt) => {
+      setIsDragging(true);
+      handlePlayerMove({ moveX: evt.nativeEvent.pageX, moveY: evt.nativeEvent.pageY });
+    },
+    
+    onPanResponderMove: (evt) => {
+      handlePlayerMove({ moveX: evt.nativeEvent.pageX, moveY: evt.nativeEvent.pageY });
+    },
+    
+    onPanResponderRelease: () => {
+      setIsDragging(false);
+    },
+  });
 
   const resetScenario = () => {
     setPlayerPosition(scenario.setup.playerPosition);
@@ -247,15 +279,13 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
 
       {/* Fotbollsplan */}
       <View style={styles.pitchContainer}>
-        <TouchableOpacity
-          activeOpacity={1}
-          onPressIn={(event) => {
-            const { locationX, locationY } = event.nativeEvent;
-            handlePlayerMove({ absoluteX: locationX + 20, absoluteY: locationY + 200 });
-          }}
+        <View
+          ref={pitchRef}
+          style={styles.pitchWrapper}
+          {...panResponder.panHandlers}
         >
           {renderFootballPitch()}
-        </TouchableOpacity>
+        </View>
       </View>
 
       {/* Success Modal */}
@@ -329,6 +359,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
   },
+  pitchWrapper: {
+    backgroundColor: '#00B04F',
+    borderRadius: 8,
+  },
   pitch: {
     backgroundColor: '#00B04F',
     borderRadius: 8,
@@ -347,6 +381,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
   playerText: {
     fontSize: 12,
