@@ -6,11 +6,11 @@ import {
   SafeAreaView, 
   TouchableOpacity,
   Dimensions,
-  Animated,
-  PanResponder
+  Animated
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Rect, Circle, Line, Text as SvgText } from 'react-native-svg';
+import VirtualJoystick from '../../components/common/VirtualJoystick';
 
 const { width, height } = Dimensions.get('window');
 const PITCH_WIDTH = width - 40;
@@ -53,67 +53,73 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
   const [playerPosition, setPlayerPosition] = useState(scenario.setup.playerPosition);
   const [gameState, setGameState] = useState<'playing' | 'success' | 'fail'>('playing');
   const [showSolution, setShowSolution] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
+  const [isMoving, setIsMoving] = useState(false);
 
   // Animated values för smooth rörelse
   const playerAnim = useRef(new Animated.ValueXY(scenario.setup.playerPosition)).current;
-  const pitchRef = useRef<View>(null);
+  const moveIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Uppdatera playerPosition när animationen ändras
     const listenerId = playerAnim.addListener(({ x, y }) => {
       setPlayerPosition({ x, y });
+      
+      // Kolla om spelaren är nära målet
+      const distance = Math.sqrt(
+        Math.pow(x - scenario.setup.targetArea.x, 2) + 
+        Math.pow(y - scenario.setup.targetArea.y, 2)
+      );
+
+      if (distance < scenario.setup.targetArea.radius && gameState === 'playing') {
+        setGameState('success');
+        setShowSolution(true);
+        setIsMoving(false);
+        if (moveIntervalRef.current) {
+          clearInterval(moveIntervalRef.current);
+          moveIntervalRef.current = null;
+        }
+      }
     });
 
     return () => {
       playerAnim.removeListener(listenerId);
+      if (moveIntervalRef.current) {
+        clearInterval(moveIntervalRef.current);
+      }
     };
-  }, []);
+  }, [gameState]);
 
-  const handlePlayerMove = (gestureState: any) => {
-    // Enklare koordinat hantering utan measure
-    const touchX = gestureState.moveX || gestureState.pageX || 0;
-    const touchY = gestureState.moveY || gestureState.pageY || 0;
+  const handleJoystickMove = (direction: { x: number; y: number }) => {
+    if (gameState !== 'playing') return;
     
-    // Approximera position relativt till screen
-    const screenOffset = 100; // Ungefär var planen börjar
-    const newX = Math.max(10, Math.min(90, ((touchX - 40) / PITCH_WIDTH) * 100));
-    const newY = Math.max(10, Math.min(90, ((touchY - screenOffset) / PITCH_HEIGHT) * 100));
+    setIsMoving(true);
     
-    // Direkt position update utan spring för bättre responsiveness
-    playerAnim.setValue({ x: newX, y: newY });
-
-    // Kolla om spelaren är nära målet
-    const distance = Math.sqrt(
-      Math.pow(newX - scenario.setup.targetArea.x, 2) + 
-      Math.pow(newY - scenario.setup.targetArea.y, 2)
-    );
-
-    if (distance < scenario.setup.targetArea.radius && gameState === 'playing') {
-      setGameState('success');
-      setShowSolution(true);
+    // Clear any existing interval
+    if (moveIntervalRef.current) {
+      clearInterval(moveIntervalRef.current);
     }
+    
+    // Start continuous movement
+    moveIntervalRef.current = setInterval(() => {
+      const currentX = (playerAnim.x as any)._value;
+      const currentY = (playerAnim.y as any)._value;
+      
+      // Speed of movement (adjust as needed)
+      const speed = 2;
+      const newX = Math.max(5, Math.min(95, currentX + (direction.x * speed)));
+      const newY = Math.max(5, Math.min(95, currentY + (direction.y * speed)));
+      
+      playerAnim.setValue({ x: newX, y: newY });
+    }, 16); // ~60fps
   };
 
-  const panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: () => true,
-    
-    onPanResponderGrant: (evt, gestureState) => {
-      setIsDragging(true);
-      handlePlayerMove({ moveX: evt.nativeEvent.pageX, moveY: evt.nativeEvent.pageY });
-    },
-    
-    onPanResponderMove: (evt, gestureState) => {
-      handlePlayerMove({ moveX: evt.nativeEvent.pageX, moveY: evt.nativeEvent.pageY });
-    },
-    
-    onPanResponderRelease: () => {
-      setIsDragging(false);
-    },
-    
-    onPanResponderTerminationRequest: () => false,
-  });
+  const handleJoystickStop = () => {
+    setIsMoving(false);
+    if (moveIntervalRef.current) {
+      clearInterval(moveIntervalRef.current);
+      moveIntervalRef.current = null;
+    }
+  };
 
   const resetScenario = () => {
     setPlayerPosition(scenario.setup.playerPosition);
@@ -266,18 +272,25 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
       <View style={styles.instructionContainer}>
         <Text style={styles.instructionText}>{scenario.description}</Text>
         {gameState === 'playing' && (
-          <Text style={styles.hintText}>💡 Dra spelaren med fingret!</Text>
+          <Text style={styles.hintText}>🕹️ Använd joysticken för att styra spelaren!</Text>
         )}
       </View>
 
-      {/* Fotbollsplan */}
-      <View style={styles.pitchContainer}>
-        <View
-          ref={pitchRef}
-          style={styles.pitchWrapper}
-          {...panResponder.panHandlers}
-        >
+      {/* Game Area */}
+      <View style={styles.gameArea}>
+        {/* Fotbollsplan */}
+        <View style={styles.pitchContainer}>
           {renderFootballPitch()}
+        </View>
+        
+        {/* Joystick Controls */}
+        <View style={styles.controlsContainer}>
+          <VirtualJoystick
+            onMove={handleJoystickMove}
+            onStop={handleJoystickStop}
+            size={100}
+          />
+          <Text style={styles.joystickLabel}>Styr spelaren</Text>
         </View>
       </View>
 
@@ -349,12 +362,27 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   pitchContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gameArea: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
+    paddingVertical: 10,
   },
-  pitchWrapper: {
-    backgroundColor: '#00B04F',
-    borderRadius: 8,
+  controlsContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingLeft: 20,
+  },
+  joystickLabel: {
+    marginTop: 10,
+    fontSize: 12,
+    color: '#7F8C8D',
+    textAlign: 'center',
   },
   pitch: {
     backgroundColor: '#00B04F',
