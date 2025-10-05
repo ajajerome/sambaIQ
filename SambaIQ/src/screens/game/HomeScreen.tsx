@@ -10,6 +10,9 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import ProgressHeader from '../../components/common/ProgressHeader';
+import LevelUpModal from '../../components/common/LevelUpModal';
+import { UserProgress } from '../../data/progression';
 
 const { width, height } = Dimensions.get('window');
 
@@ -18,12 +21,44 @@ interface HomeScreenProps {
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
-  const [userStats, setUserStats] = useState({
-    level: 3,
-    xp: 250,
-    xpToNext: 350,
-    streakDays: 7,
-    completedScenarios: 25
+  // Mock user progress - In real app, this would come from AsyncStorage/Supabase
+  const [userProgress, setUserProgress] = useState<UserProgress>({
+    total_xp: 1250,
+    current_level: 5,
+    daily_streak: {
+      current_streak: 12,
+      longest_streak: 25,
+      last_activity: new Date().toISOString(),
+      streak_rewards: []
+    },
+    tactical_iq: {
+      positioning: 78,
+      passing: 82,
+      defending: 75,
+      attacking: 70,
+      overall: 76
+    },
+    badges_earned: [
+      { id: 'first_goal', name: 'First Goal', description: '', icon: '⚽', rarity: 'bronze', category: 'achievement', requirement: '' },
+      { id: 'week_warrior', name: 'Week Warrior', description: '', icon: '🔥', rarity: 'silver', category: 'achievement', requirement: '' },
+    ],
+    scenarios_mastered: ['scenario_1', 'scenario_2'],
+    quotes_collected: ['maldini_defense', 'xavi_passing'],
+    friends_count: 8,
+    leaderboard_position: 47
+  });
+
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const [levelUpData, setLevelUpData] = useState({
+    newLevel: 5,
+    newTitle: 'Squad Regular',
+    xpGained: 100,
+    badgeEarned: {
+      name: 'Squad Regular',
+      icon: '👕',
+      rarity: 'silver'
+    },
+    unlockedContent: ['Leadership Scenarios', 'Captain Decisions']
   });
 
   const [dailyChallenge, setDailyChallenge] = useState({
@@ -58,6 +93,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       icon: 'people',
       color: '#9B59B6',
       action: () => navigation.navigate('Friends')
+    },
+    {
+      id: 'test_levelup',
+      title: '🎉 Test Level Up',
+      subtitle: 'Se level up animation',
+      icon: 'star',
+      color: '#FFD700',
+      action: () => setShowLevelUp(true)
     }
   ];
 
@@ -70,6 +113,22 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Progress Header - Duolingo Style */}
+        <ProgressHeader 
+          userProgress={userProgress}
+          onProfilePress={() => navigation.navigate('Profile')}
+        />
+
+        {/* Level Up Modal */}
+        <LevelUpModal
+          visible={showLevelUp}
+          onClose={() => setShowLevelUp(false)}
+          newLevel={levelUpData.newLevel}
+          newTitle={levelUpData.newTitle}
+          xpGained={levelUpData.xpGained}
+          badgeEarned={levelUpData.badgeEarned}
+          unlockedContent={levelUpData.unlockedContent}
+        />
         {/* Header */}
         <LinearGradient
           colors={['#00B04F', '#32CD32']}
