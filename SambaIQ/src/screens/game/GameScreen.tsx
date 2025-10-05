@@ -16,7 +16,7 @@ import VirtualJoystick from '../../components/common/VirtualJoystick';
 import ShootButton from '../../components/common/ShootButton';
 import PassButton from '../../components/common/PassButton';
 import QuestionScreen from '../../components/common/QuestionScreen';
-import PremiumPitch from '../../components/football/PremiumPitch';
+// import PremiumPitch from '../../components/football/PremiumPitch'; // Temporary disabled
 import { scenarios, ScenarioType } from '../../data/scenarios';
 
 const { width, height } = Dimensions.get('window');
