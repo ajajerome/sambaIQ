@@ -496,9 +496,30 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
 
       {/* Main Game Area - Landscape Optimized */}
       <View style={styles.gameArea}>
-          {/* Premium Football Pitch */}
+          {/* Football Pitch - Temporary Fallback */}
           <View style={styles.pitchContainer}>
-            <PremiumPitch width={PITCH_WIDTH} height={PITCH_HEIGHT}>
+            <Svg width={PITCH_WIDTH} height={PITCH_HEIGHT} style={styles.pitch}>
+              {/* Basic pitch background */}
+              <Rect
+                x={0}
+                y={0}
+                width={PITCH_WIDTH}
+                height={PITCH_HEIGHT}
+                fill="#00B04F"
+                stroke="#fff"
+                strokeWidth={2}
+              />
+              
+              {/* Center line */}
+              <Line
+                x1={0}
+                y1={PITCH_HEIGHT / 2}
+                x2={PITCH_WIDTH}
+                y2={PITCH_HEIGHT / 2}
+                stroke="#fff"
+                strokeWidth={2}
+              />
+
               {/* Målvakt */}
               <Circle
                 cx={PITCH_WIDTH * scenario.setup.goalkeeperPosition.x / 100}
@@ -509,7 +530,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
                 strokeWidth={2}
               />
 
-              {/* Lagkamrater (gröna) */}
+              {/* Lagkamrater */}
               {scenario.setup.teammates?.map((teammate) => (
                 <Circle
                   key={teammate.id}
@@ -522,7 +543,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
                 />
               ))}
 
-              {/* Försvarare (röda) */}
+              {/* Opponents */}
               {scenario.setup.opponents?.map((opponent) => (
                 <Circle
                   key={opponent.id}
@@ -535,27 +556,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
                 />
               ))}
 
-              {/* Markings för theory_practice scenarios */}
-              {scenario.setup.markings?.map((marking, index) => {
-                if (marking.type === 'zone') {
-                  return (
-                    <Rect
-                      key={`marking-${index}`}
-                      x={PITCH_WIDTH * (marking.x - (marking.width || 0) / 2) / 100}
-                      y={PITCH_HEIGHT * (marking.y - (marking.height || 0) / 2) / 100}
-                      width={PITCH_WIDTH * (marking.width || 10) / 100}
-                      height={PITCH_HEIGHT * (marking.height || 10) / 100}
-                      fill={`${marking.color}40`}
-                      stroke={marking.color}
-                      strokeWidth={2}
-                      strokeDasharray="5,5"
-                    />
-                  );
-                }
-                return null;
-              })}
-
-              {/* Boll (separat från spelare) */}
+              {/* Ball */}
               <Circle
                 cx={PITCH_WIDTH * ballPosition.x / 100}
                 cy={PITCH_HEIGHT * ballPosition.y / 100}
@@ -564,31 +565,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
                 stroke="#000"
                 strokeWidth={1}
               />
-
-              {/* Direction arrows for passing scenarios */}
-              {scenario.type === 'passing' && scenario.setup.teammates && gameState === 'playing' && (
-                scenario.setup.teammates.map((teammate) => {
-                  const playerX = PITCH_WIDTH * playerPosition.x / 100;
-                  const playerY = PITCH_HEIGHT * playerPosition.y / 100;
-                  const teammateX = PITCH_WIDTH * teammate.position.x / 100;
-                  const teammateY = PITCH_HEIGHT * teammate.position.y / 100;
-                  
-                  return (
-                    <Line
-                      key={`arrow-${teammate.id}`}
-                      x1={playerX}
-                      y1={playerY}
-                      x2={teammateX}
-                      y2={teammateY}
-                      stroke="#00B04F"
-                      strokeWidth={3}
-                      strokeDasharray="8,4"
-                      opacity={0.7}
-                    />
-                  );
-                })
-              )}
-            </PremiumPitch>
+            </Svg>
           
           {/* Overlay Instructions - Minimalistic */}
           {gameState === 'playing' && (
