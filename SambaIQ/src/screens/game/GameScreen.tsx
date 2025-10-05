@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  SafeAreaView, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
   TouchableOpacity,
   Dimensions,
   Animated,
@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Rect, Circle, Line, Text as SvgText } from 'react-native-svg';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import VirtualJoystick from '../../components/common/VirtualJoystick';
 import ShootButton from '../../components/common/ShootButton';
 import PassButton from '../../components/common/PassButton';
@@ -225,10 +226,23 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
     if (gameState === 'playing' && scenario.type === 'theory_practice') {
       const timer = setTimeout(() => {
         handlePositionComplete();
-      }, 500); // Check varje 500ms
+      }, 1500); // Sakta ner till 1.5s för att ge tid att förstå
       return () => clearTimeout(timer);
     }
   }, [playerPosition, gameState, scenario.type]);
+
+  // Force landscape orientation when component mounts
+  useEffect(() => {
+    const setLandscape = async () => {
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
+    };
+    setLandscape();
+
+    // Return to portrait when component unmounts
+    return () => {
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+    };
+  }, []);
 
   const resetScenario = () => {
     setPlayerPosition(scenario.setup.playerPosition);
@@ -383,6 +397,31 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
             stroke="#000"
             strokeWidth={1}
           />
+
+          {/* Direction arrows for passing scenarios */}
+          {scenario.type === 'passing' && scenario.setup.teammates && gameState === 'playing' && (
+            scenario.setup.teammates.map((teammate) => {
+              // Draw arrow from player to teammate
+              const playerX = PITCH_WIDTH * playerPosition.x / 100;
+              const playerY = PITCH_HEIGHT * playerPosition.y / 100;
+              const teammateX = PITCH_WIDTH * teammate.position.x / 100;
+              const teammateY = PITCH_HEIGHT * teammate.position.y / 100;
+              
+              return (
+                <Line
+                  key={`arrow-${teammate.id}`}
+                  x1={playerX}
+                  y1={playerY}
+                  x2={teammateX}
+                  y2={teammateY}
+                  stroke="#00B04F"
+                  strokeWidth={3}
+                  strokeDasharray="8,4"
+                  opacity={0.7}
+                />
+              );
+            })
+          )}
       
       {/* Spelare (animerad) */}
       <Animated.View

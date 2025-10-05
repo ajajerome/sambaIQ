@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Screens
 import OnboardingScreen from '../screens/auth/OnboardingScreen';
@@ -105,7 +106,26 @@ function MainTabNavigator() {
 
 // Root Navigator
 export default function AppNavigator() {
-  const [isOnboarded, setIsOnboarded] = React.useState(true); // Will check from AsyncStorage
+  const [isOnboarded, setIsOnboarded] = React.useState<boolean | null>(null);
+
+  React.useEffect(() => {
+    const checkOnboarding = async () => {
+      try {
+        const onboardingCompleted = await AsyncStorage.getItem('onboarding_completed');
+        setIsOnboarded(onboardingCompleted === 'true');
+      } catch (error) {
+        console.log('Error checking onboarding status:', error);
+        setIsOnboarded(false); // Default to showing onboarding
+      }
+    };
+
+    checkOnboarding();
+  }, []);
+
+  // Show loading while checking onboarding status
+  if (isOnboarded === null) {
+    return null; // Or a loading screen
+  }
 
   return (
     <NavigationContainer>
