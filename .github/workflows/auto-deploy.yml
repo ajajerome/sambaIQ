@@ -1,0 +1,37 @@
+name: SambaIQ Auto Deploy
+on:
+  push:
+    branches: [ cursor/build-ai-football-app-with-react-native-9569 ]
+  
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Setup Expo CLI
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+          
+      - name: Install dependencies
+        run: |
+          cd SambaIQ
+          npm install
+          
+      - name: Build for iOS
+        run: |
+          cd SambaIQ
+          eas build --platform ios --profile preview --non-interactive --auto-submit-with-profile=production
+          
+      - name: Notify completion
+        run: |
+          echo "✅ SambaIQ build complete and submitted to TestFlight!"
+          echo "🎯 Check your email for TestFlight notification"
