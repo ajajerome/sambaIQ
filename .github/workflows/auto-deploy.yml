@@ -1,7 +1,7 @@
 name: SambaIQ Auto Deploy to TestFlight
 on:
   push:
-    branches: [ cursor/build-ai-football-app-with-react-native-9569 ]
+    branches: [ cursor/build-ai-football-app-with-react-native-9569, cursor/** ]
   workflow_dispatch:
     inputs:
       message:
@@ -33,6 +33,11 @@ jobs:
         run: |
           cd SambaIQ
           npm ci
+
+      - name: ✅ Validate project
+        run: |
+          cd SambaIQ
+          npm run validate
           
       - name: 🔨 Build for iOS Preview
         run: |
