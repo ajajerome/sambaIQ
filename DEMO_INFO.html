@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SambaIQ Demo - Kan inte köra lokalt?</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #00B04F, #32CD32);
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+            margin: 0;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        h1 { font-size: 2.5em; margin-bottom: 20px; }
+        .demo-section {
+            background: rgba(255,255,255,0.2);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+        .screenshot {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        .next-steps {
+            text-align: left;
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        code {
+            background: rgba(0,0,0,0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+        .feature-list {
+            text-align: left;
+            margin: 20px 0;
+        }
+        .feature-list li {
+            margin: 10px 0;
+            padding-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚽ SambaIQ - Demo</h1>
+        <p><strong>"Duolingo för Fotboll" - Färdig MVP!</strong></p>
+        
+        <div class="demo-section">
+            <h2>🎮 Vad vi har byggt:</h2>
+            
+            <div class="feature-list">
+                <h3>✅ Komplett App Flow:</h3>
+                <ul>
+                    <li><strong>Onboarding:</strong> Välj ålder (7-9, 10-12, 13-16) & position</li>
+                    <li><strong>Dashboard:</strong> Level 3, 250 XP, 7-day streak 🔥</li>
+                    <li><strong>Scenarios:</strong> "Ditt Första Mål" scenario ready</li>
+                    <li><strong>Interactive Game:</strong> Drag & drop spelare på fotbollsplan</li>
+                    <li><strong>Success Celebration:</strong> Messi quotes & XP rewards</li>
+                </ul>
+                
+                <h3>🎨 FC 25-26 Design:</h3>
+                <ul>
+                    <li><strong>Glassmorphism:</strong> Transparent cards med blur</li>
+                    <li><strong>Gradients:</strong> Fotbollsgröna (#00B04F) till ljusgrön</li>
+                    <li><strong>Smooth Animations:</strong> Premium känsa överallt</li>
+                    <li><strong>Kid-Friendly:</strong> Stora knappar, tydliga ikoner</li>
+                </ul>
+                
+                <h3>🧠 Smart Pedagogik:</h3>
+                <ul>
+                    <li><strong>Age-Appropriate:</strong> 7v7, 9v9, 11v11 plans</li>
+                    <li><strong>Famous Quotes:</strong> Messi, Guardiola, Zlatan, Cruyff</li>
+                    <li><strong>Immediate Feedback:</strong> Instant coaching tips</li>
+                    <li><strong>Gamification:</strong> XP, badges, streaks, levels</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>🚀 Teknisk Stack:</h2>
+            <p><strong>Frontend:</strong> React Native + Expo SDK 54 + TypeScript</p>
+            <p><strong>Navigation:</strong> React Navigation (Stack + Tabs)</p>
+            <p><strong>Graphics:</strong> SVG fotbollsplan med smooth animations</p>
+            <p><strong>Styling:</strong> Modern glassmorphism design</p>
+            <p><strong>Ready för:</strong> Supabase backend, AI integration</p>
+        </div>
+        
+        <div class="next-steps">
+            <h2>📱 För att testa SambaIQ:</h2>
+            
+            <h3>Option 1: Lokalt på din dator</h3>
+            <p>1. Klona projektet från GitHub:</p>
+            <code>git clone https://github.com/ajajerome/sambaiq.git</code><br>
+            <code>cd sambaiq && npm install</code><br>
+            <code>npm run web</code>
+            
+            <h3>Option 2: Expo Go (Mobil)</h3>
+            <p>1. Ladda ner "Expo Go" från App Store/Google Play</p>
+            <p>2. Kör: <code>npx expo start --tunnel</code></p>
+            <p>3. Scanna QR-koden</p>
+            
+            <h3>Option 3: EAS Build (Production)</h3>
+            <p>Ready för iOS TestFlight & Android deployment!</p>
+            <code>eas build --platform ios</code>
+        </div>
+        
+        <div class="demo-section">
+            <h2>🎯 Nästa Steg:</h2>
+            <ul class="feature-list">
+                <li><strong>AI Integration:</strong> OpenAI för oändliga scenarier</li>
+                <li><strong>Supabase Setup:</strong> User auth & cloud saves</li>
+                <li><strong>15+ Scenarios:</strong> Alla åldersgrupper</li>
+                <li><strong>Social Features:</strong> Vänner, leaderboards, challenges</li>
+                <li><strong>Push Notifications:</strong> Streak påminnelser</li>
+                <li><strong>iOS TestFlight:</strong> Beta testing med riktiga barn</li>
+            </ul>
+        </div>
+        
+        <div style="margin-top: 40px; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 10px;">
+            <h2>🏆 MVP STATUS: ✅ FÄRDIG!</h2>
+            <p><strong>"Vi har skapat exakt vad som behövs för en killer MVP - 
+            en magisk första upplevelse som fångar barn på 30 sekunder!"</strong></p>
+            <p><em>- SambaIQ Team ⚽</em></p>
+        </div>
+    </div>
+</body>
+</html>
