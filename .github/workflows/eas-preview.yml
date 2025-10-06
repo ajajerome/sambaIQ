@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        # Change to 'SambaIQ' if the app is in a subfolder
-        working-directory: .
+        # App lives in SambaIQ/SambaIQ
+        working-directory: SambaIQ/SambaIQ
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

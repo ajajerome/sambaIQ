@@ -8,6 +8,7 @@ Purpose: Make it trivial for any agent/dev to resume work.
 
 ## CI/CD
 - GitHub Actions workflow: `.github/workflows/eas-preview.yml`
+- Working directory: `SambaIQ/SambaIQ`
 - Triggers on pushes to `cursor2`
 - Requires repo secret `EXPO_TOKEN`
 
