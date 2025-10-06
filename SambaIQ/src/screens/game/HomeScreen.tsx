@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import ProgressHeader from '../../components/common/ProgressHeader';
 import LevelUpModal from '../../components/common/LevelUpModal';
 import { UserProgress } from '../../data/progression';
+import PremiumTheme from '../../styles/PremiumTheme';
 
 const { width, height } = Dimensions.get('window');
 
@@ -131,7 +132,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         />
         {/* Header */}
         <LinearGradient
-          colors={['#00B04F', '#32CD32']}
+          colors={PremiumTheme.gradients.card}
           style={styles.header}
         >
           <View style={styles.headerContent}>
@@ -149,27 +150,27 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           {/* Stats Bar */}
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>Nivå {userStats.level}</Text>
+              <Text style={styles.statNumber}>Nivå {userProgress.current_level}</Text>
               <Text style={styles.statLabel}>Din nivå</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{userStats.xp} XP</Text>
-              <Text style={styles.statLabel}>{userStats.xpToNext - userStats.xp} till nästa</Text>
+              <Text style={styles.statNumber}>{userProgress.total_xp} XP</Text>
+              <Text style={styles.statLabel}>Total XP</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{userStats.streakDays} 🔥</Text>
+              <Text style={styles.statNumber}>{userProgress.daily_streak.current_streak} 🔥</Text>
               <Text style={styles.statLabel}>Dagars streak</Text>
             </View>
           </View>
 
           {/* Progress Bar */}
           <View style={styles.progressContainer}>
-            <Text style={styles.progressLabel}>Framsteg till nivå {userStats.level + 1}</Text>
+            <Text style={styles.progressLabel}>Framsteg till nivå {userProgress.current_level + 1}</Text>
             <View style={styles.progressBar}>
               <View 
                 style={[
                   styles.progressFill, 
-                  { width: `${(userStats.xp / userStats.xpToNext) * 100}%` }
+                  { width: `${Math.min((userProgress.total_xp % 1000) / 1000 * 100, 100)}%` }
                 ]} 
               />
             </View>
@@ -263,7 +264,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: PremiumTheme.background,
   },
   header: {
     paddingTop: 20,
