@@ -13,7 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { footballRegions, FootballRegion } from '../../data/regions';
-import { PremiumTheme } from '../../styles/PremiumTheme';
+import PremiumTheme from '../../styles/PremiumTheme';
 
 const { width, height } = Dimensions.get('window');
 

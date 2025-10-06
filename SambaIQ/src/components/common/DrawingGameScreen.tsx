@@ -13,7 +13,7 @@ import Svg, { Rect, Circle, Line, Path } from 'react-native-svg';
 import DrawingCanvas from './DrawingCanvas';
 import QuestionScreen from './QuestionScreen';
 import { scenarios, ScenarioType } from '../../data/scenarios';
-import { PremiumTheme } from '../../styles/PremiumTheme';
+import PremiumTheme from '../../styles/PremiumTheme';
 
 const { width, height } = Dimensions.get('window');
 const PITCH_WIDTH = Math.min(width - 40, 400);

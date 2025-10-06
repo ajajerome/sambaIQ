@@ -16,7 +16,7 @@ import FriendsScreen from '../screens/social/FriendsScreen';
 import LeaderboardScreen from '../screens/social/LeaderboardScreen';
 
 import { RootStackParamList, MainTabParamList, PlayStackParamList } from '../types';
-import { PremiumTheme } from '../styles/PremiumTheme';
+import PremiumTheme from '../styles/PremiumTheme';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
