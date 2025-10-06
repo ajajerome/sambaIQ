@@ -1,0 +1,38 @@
+{
+  "name": "SambaIQ Development Environment",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:18",
+  
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "18"
+    }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.vscode-typescript-next",
+        "bradlc.vscode-tailwindcss",
+        "ms-vscode.vscode-json",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-eslint"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": true
+        }
+      }
+    }
+  },
+
+  "postCreateCommand": "cd SambaIQ && npm install && npm install -g @expo/cli eas-cli",
+  
+  "forwardPorts": [8081, 19000, 19001, 19002],
+  
+  "remoteEnv": {
+    "EXPO_DEVTOOLS_LISTEN_ADDRESS": "0.0.0.0"
+  }
+}
