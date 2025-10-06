@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Rect, Circle, Line, Text as SvgText } from 'react-native-svg';
-import * as ScreenOrientation from 'expo-screen-orientation';
+// import * as ScreenOrientation from 'expo-screen-orientation'; // Temporary disabled - causing crash
 import VirtualJoystick from '../../components/common/VirtualJoystick';
 import ShootButton from '../../components/common/ShootButton';
 import PassButton from '../../components/common/PassButton';
@@ -232,18 +232,16 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
     }
   }, [playerPosition, gameState, scenario.type]);
 
-  // Force landscape orientation when component mounts
-  useEffect(() => {
-    const setLandscape = async () => {
-      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
-    };
-    setLandscape();
-
-    // Return to portrait when component unmounts
-    return () => {
-      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
-    };
-  }, []);
+  // TODO: Add landscape orientation when ScreenOrientation is working
+  // useEffect(() => {
+  //   const setLandscape = async () => {
+  //     await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
+  //   };
+  //   setLandscape();
+  //   return () => {
+  //     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+  //   };
+  // }, []);
 
   const resetScenario = () => {
     setPlayerPosition(scenario.setup.playerPosition);
