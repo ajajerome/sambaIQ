@@ -7,7 +7,11 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "platforms": ["ios", "android", "web"],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -45,6 +49,9 @@
         "projectId": "79a4b7f6-bc77-4c19-a23d-b8317c1c1f43"
       }
     },
-    "owner": "jappmaster"
+    "owner": "jappmaster",
+    "plugins": [
+      "expo-font"
+    ]
   }
 }
