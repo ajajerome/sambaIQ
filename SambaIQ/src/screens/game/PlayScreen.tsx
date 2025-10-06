@@ -134,8 +134,12 @@ const PlayScreen: React.FC<PlayScreenProps> = ({ navigation }) => {
     return 'Svår';
   };
 
-  const handlePlayScenario = (scenarioId: string) => {
-    navigation.navigate('Game', { scenarioId });
+  const handlePlayScenario = (scenarioId: string, gameMode: 'joystick' | 'drawing' = 'drawing') => {
+    if (gameMode === 'drawing') {
+      navigation.navigate('DrawingGame', { scenarioId });
+    } else {
+      navigation.navigate('Game', { scenarioId });
+    }
   };
 
   const renderScenarioCard = (scenario: any) => (

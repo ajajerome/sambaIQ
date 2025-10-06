@@ -10,6 +10,7 @@ import OnboardingScreen from '../screens/auth/OnboardingScreen';
 import HomeScreen from '../screens/game/HomeScreen';
 import PlayScreen from '../screens/game/PlayScreen';
 import GameScreen from '../screens/game/GameScreen';
+import DrawingGameScreen from '../components/common/DrawingGameScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 import FriendsScreen from '../screens/social/FriendsScreen';
 import LeaderboardScreen from '../screens/social/LeaderboardScreen';
@@ -42,7 +43,12 @@ function PlayStackNavigator() {
       <PlayStack.Screen 
         name="Game" 
         component={GameScreen}
-        options={{ title: 'Spela' }}
+        options={{ title: 'Spela (Joystick)' }}
+      />
+      <PlayStack.Screen 
+        name="DrawingGame" 
+        component={DrawingGameScreen}
+        options={{ title: 'Spela (Rita)' }}
       />
     </PlayStack.Navigator>
   );

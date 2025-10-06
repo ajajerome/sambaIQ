@@ -139,6 +139,7 @@ export type MainTabParamList = {
 export type PlayStackParamList = {
   Scenarios: undefined;
   Game: { scenarioId: string };
+  DrawingGame: { scenarioId: string };
   Results: { sessionId: string };
 };
 
