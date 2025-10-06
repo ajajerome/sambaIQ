@@ -103,7 +103,7 @@ const ProgressHeader: React.FC<ProgressHeaderProps> = ({ userProgress, onProfile
           </View>
           
           <View style={styles.statItem}>
-            <Ionicons name="brain" size={16} color="#FF6B35" />
+            <Ionicons name="analytics" size={16} color="#FF6B35" />
             <Text style={styles.statNumber}>{userProgress.tactical_iq.overall}</Text>
             <Text style={styles.statLabel}>Tactical IQ</Text>
           </View>
