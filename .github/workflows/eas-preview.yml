@@ -1,0 +1,36 @@
+name: EAS iOS Preview
+
+on:
+  push:
+    branches:
+      - cursor2
+  workflow_dispatch:
+
+jobs:
+  ios-preview:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        # Change to 'SambaIQ' if the app is in a subfolder
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then npm ci; elif [ -f yarn.lock ]; then yarn install --frozen-lockfile; else npm install; fi
+      - name: Build iOS (preview, standalone)
+        run: |
+          eas build \
+            --platform ios \
+            --profile preview \
+            --non-interactive \
+            --clear-cache \
+            --wait \
+            --message "CI preview build (cursor2)"
