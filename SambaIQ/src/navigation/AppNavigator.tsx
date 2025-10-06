@@ -1,8 +1,8 @@
 import React from 'react';
+import { Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Screens
@@ -16,6 +16,7 @@ import FriendsScreen from '../screens/social/FriendsScreen';
 import LeaderboardScreen from '../screens/social/LeaderboardScreen';
 
 import { RootStackParamList, MainTabParamList, PlayStackParamList } from '../types';
+import PremiumTheme from '../styles/PremiumTheme';
 
 const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -27,11 +28,12 @@ function PlayStackNavigator() {
     <PlayStack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#00B04F', // Football green
+          backgroundColor: PremiumTheme.surface,
         },
-        headerTintColor: '#fff',
+        headerTintColor: PremiumTheme.text.primary,
         headerTitleStyle: {
           fontWeight: 'bold',
+          color: PremiumTheme.accent,
         },
       }}
     >
@@ -60,28 +62,28 @@ function MainTabNavigator() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName: keyof typeof Ionicons.glyphMap;
+          let emoji: string;
 
           if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
+            emoji = focused ? '🏠' : '🏡';
           } else if (route.name === 'Play') {
-            iconName = focused ? 'football' : 'football-outline';
+            emoji = focused ? '⚽' : '🏈';
           } else if (route.name === 'Profile') {
-            iconName = focused ? 'person' : 'person-outline';
+            emoji = focused ? '👤' : '👥';
           } else if (route.name === 'Friends') {
-            iconName = focused ? 'people' : 'people-outline';
+            emoji = focused ? '👥' : '👫';
           } else {
-            iconName = 'home-outline';
+            emoji = '🏠';
           }
 
-          return <Ionicons name={iconName} size={size} color={color} />;
+          return <Text style={{ fontSize: size * 0.8, color }}>{emoji}</Text>;
         },
-        tabBarActiveTintColor: '#00B04F',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: PremiumTheme.accent,
+        tabBarInactiveTintColor: PremiumTheme.text.tertiary,
         tabBarStyle: {
-          backgroundColor: '#fff',
+          backgroundColor: PremiumTheme.surface,
           borderTopWidth: 1,
-          borderTopColor: '#e0e0e0',
+          borderTopColor: PremiumTheme.ui.cardBorder,
         },
         headerShown: false,
       })}

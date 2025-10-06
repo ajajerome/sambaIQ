@@ -13,6 +13,7 @@ import Svg, { Rect, Circle, Line, Path } from 'react-native-svg';
 import DrawingCanvas from './DrawingCanvas';
 import QuestionScreen from './QuestionScreen';
 import { scenarios, ScenarioType } from '../../data/scenarios';
+import PremiumTheme from '../../styles/PremiumTheme';
 
 const { width, height } = Dimensions.get('window');
 const PITCH_WIDTH = Math.min(width - 40, 400);
@@ -256,7 +257,7 @@ const DrawingGameScreen: React.FC<DrawingGameScreenProps> = ({ navigation, route
           {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-              <Ionicons name="arrow-back" size={24} color="#fff" />
+              <Text style={styles.headerIcon}>←</Text>
             </TouchableOpacity>
             
             <View style={styles.headerInfo}>
@@ -265,7 +266,7 @@ const DrawingGameScreen: React.FC<DrawingGameScreenProps> = ({ navigation, route
             </View>
             
             <TouchableOpacity onPress={resetScenario} style={styles.resetButton}>
-              <Ionicons name="refresh" size={24} color="#fff" />
+              <Text style={styles.headerIcon}>↻</Text>
             </TouchableOpacity>
           </View>
 
@@ -340,7 +341,7 @@ const DrawingGameScreen: React.FC<DrawingGameScreenProps> = ({ navigation, route
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0D4F3C',
+    backgroundColor: PremiumTheme.background,
   },
   header: {
     flexDirection: 'row',
@@ -348,7 +349,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 15,
-    backgroundColor: 'rgba(0, 176, 79, 0.9)',
+    backgroundColor: PremiumTheme.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: PremiumTheme.ui.cardBorder,
   },
   backButton: {
     padding: 8,
@@ -356,14 +359,20 @@ const styles = StyleSheet.create({
   headerInfo: {
     alignItems: 'center',
   },
+  headerIcon: {
+    fontSize: 24,
+    color: PremiumTheme.accent,
+    fontWeight: 'bold',
+  },
   scenarioTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: PremiumTheme.text.primary,
   },
   scenarioXP: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: PremiumTheme.accent,
+    fontWeight: '600',
   },
   resetButton: {
     padding: 8,

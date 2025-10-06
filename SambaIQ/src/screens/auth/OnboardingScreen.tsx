@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { footballRegions, FootballRegion } from '../../data/regions';
+import PremiumTheme from '../../styles/PremiumTheme';
 
 const { width, height } = Dimensions.get('window');
 
@@ -140,15 +141,15 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }) => {
       
       <View style={styles.featuresContainer}>
         <View style={styles.feature}>
-          <Ionicons name="game-controller" size={24} color="#00B04F" />
+          <Text style={styles.featureEmoji}>🎮</Text>
           <Text style={styles.featureText}>Interaktiva scenarier</Text>
         </View>
         <View style={styles.feature}>
-          <Ionicons name="trophy" size={24} color="#FFD700" />
+          <Text style={styles.featureEmoji}>🏆</Text>
           <Text style={styles.featureText}>Badges & nivåer</Text>
         </View>
         <View style={styles.feature}>
-          <Ionicons name="people" size={24} color="#FF6B35" />
+          <Text style={styles.featureEmoji}>👥</Text>
           <Text style={styles.featureText}>Spela med vänner</Text>
         </View>
       </View>
@@ -290,7 +291,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }) => {
 
   return (
     <LinearGradient
-      colors={['#00B04F', '#32CD32', '#90EE90']}
+      colors={PremiumTheme.gradients.background}
       style={styles.container}
     >
       <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
@@ -320,12 +321,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }) => {
             <Text style={styles.nextButtonText}>
               {currentStep === onboardingSteps.length - 1 ? 'Börja spela!' : 'Nästa'}
             </Text>
-            <Ionicons 
-              name="arrow-forward" 
-              size={24} 
-              color="#fff" 
-              style={styles.nextIcon}
-            />
+            <Text style={styles.nextIcon}>→</Text>
           </TouchableOpacity>
         </View>
       </Animated.View>
@@ -354,23 +350,22 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#fff',
+    color: PremiumTheme.text.primary,
     textAlign: 'center',
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 18,
-    color: '#fff',
+    color: PremiumTheme.accent,
     textAlign: 'center',
     marginBottom: 10,
-    opacity: 0.9,
+    fontWeight: '600',
   },
   description: {
     fontSize: 16,
-    color: '#fff',
+    color: PremiumTheme.text.secondary,
     textAlign: 'center',
     marginBottom: 30,
-    opacity: 0.8,
     lineHeight: 24,
   },
   featuresContainer: {
@@ -379,16 +374,21 @@ const styles = StyleSheet.create({
   feature: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: PremiumTheme.ui.card,
     padding: 15,
     borderRadius: 15,
     marginBottom: 10,
     width: width * 0.7,
+    borderWidth: 1,
+    borderColor: PremiumTheme.ui.cardBorder,
+  },
+  featureEmoji: {
+    fontSize: 24,
+    marginRight: 12,
   },
   featureText: {
-    color: '#fff',
+    color: PremiumTheme.text.primary,
     fontSize: 16,
-    marginLeft: 10,
     fontWeight: '500',
   },
   ageContainer: {
@@ -461,25 +461,29 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   nextButton: {
-    backgroundColor: '#fff',
+    backgroundColor: PremiumTheme.accent,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 18,
     borderRadius: 25,
     marginHorizontal: 20,
+    ...PremiumTheme.shadows.medium,
   },
   disabledButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: PremiumTheme.text.disabled,
+    opacity: 0.5,
   },
   nextButtonText: {
-    color: '#00B04F',
+    color: PremiumTheme.text.inverse,
     fontSize: 18,
     fontWeight: 'bold',
   },
   nextIcon: {
     marginLeft: 10,
-    color: '#00B04F',
+    color: PremiumTheme.text.inverse,
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   
   // Region Selection Styles
