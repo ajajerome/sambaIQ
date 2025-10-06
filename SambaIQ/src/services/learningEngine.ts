@@ -10,9 +10,11 @@ export interface LearningFeedback {
   };
 }
 
+type BasicPosition = { x: number; y: number };
+
 export const calculatePositionFeedback = (
-  playerPos: Position,
-  scenario: ScenarioType
+  playerPos: BasicPosition,
+  scenario: any
 ): LearningFeedback => {
   const { targetArea, opponents, teammates } = scenario.setup;
   
@@ -23,7 +25,9 @@ export const calculatePositionFeedback = (
   );
   
   // Calculate threat coverage
-  const threatCoverage = calculateThreatCoverage(playerPos, opponents);
+  const threatCoverage = typeof (globalThis as any).calculateThreatCoverage === 'function'
+    ? (globalThis as any).calculateThreatCoverage(playerPos, opponents)
+    : 50;
   
   // Generate contextual hints
   const hints = generateHints(distanceToOptimal, threatCoverage, scenario);
@@ -40,7 +44,7 @@ export const calculatePositionFeedback = (
   };
 };
 
-const generateHints = (distance: number, coverage: number, scenario: ScenarioType): string[] => {
+const generateHints = (distance: number, coverage: number, scenario: any): string[] => {
   const hints: string[] = [];
   
   if (distance > 15) {

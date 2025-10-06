@@ -149,27 +149,27 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           {/* Stats Bar */}
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>Nivå {userStats.level}</Text>
+              <Text style={styles.statNumber}>Nivå {userProgress.current_level}</Text>
               <Text style={styles.statLabel}>Din nivå</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{userStats.xp} XP</Text>
-              <Text style={styles.statLabel}>{userStats.xpToNext - userStats.xp} till nästa</Text>
+              <Text style={styles.statNumber}>{userProgress.total_xp} XP</Text>
+              <Text style={styles.statLabel}>Mot nästa nivå</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{userStats.streakDays} 🔥</Text>
+              <Text style={styles.statNumber}>{userProgress.daily_streak.current_streak} 🔥</Text>
               <Text style={styles.statLabel}>Dagars streak</Text>
             </View>
           </View>
 
           {/* Progress Bar */}
           <View style={styles.progressContainer}>
-            <Text style={styles.progressLabel}>Framsteg till nivå {userStats.level + 1}</Text>
+            <Text style={styles.progressLabel}>Framsteg till nivå {userProgress.current_level + 1}</Text>
             <View style={styles.progressBar}>
               <View 
                 style={[
                   styles.progressFill, 
-                  { width: `${(userStats.xp / userStats.xpToNext) * 100}%` }
+                  { width: `${Math.min(100, (userProgress.total_xp % 300) / 3)}%` }
                 ]} 
               />
             </View>

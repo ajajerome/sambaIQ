@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated } from 'react-native';
-import Svg, { Path, Defs, Marker, Polygon } from 'react-native-svg';
+import Svg, { Path, Defs, Marker, Polygon, G } from 'react-native-svg';
 
 interface PlayerDirectionArrowProps {
   fromX: number; // Player position
@@ -26,6 +26,7 @@ const PlayerDirectionArrow: React.FC<PlayerDirectionArrowProps> = ({
   visible = true
 }) => {
   const animatedValue = useRef(new Animated.Value(0)).current;
+  const AnimatedG = (Animated as any).createAnimatedComponent(G);
 
   useEffect(() => {
     if (visible && animated) {
@@ -87,7 +88,7 @@ const PlayerDirectionArrow: React.FC<PlayerDirectionArrowProps> = ({
         </Marker>
       </Defs>
       
-      <Animated.G opacity={animatedValue}>
+      <AnimatedG opacity={animatedValue as any}>
         <Path
           d={`M ${startX} ${startY} L ${shortEndX} ${shortEndY}`}
           stroke={color}
@@ -95,7 +96,7 @@ const PlayerDirectionArrow: React.FC<PlayerDirectionArrowProps> = ({
           strokeDasharray="8,4"
           markerEnd="url(#arrowhead)"
         />
-      </Animated.G>
+      </AnimatedG>
     </Svg>
   );
 };

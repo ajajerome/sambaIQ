@@ -366,26 +366,26 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
             />
           ))}
 
-          {/* Markings för theory_practice scenarios */}
-          {scenario.setup.markings?.map((marking, index) => {
-            if (marking.type === 'zone') {
-              return (
-                <Rect
-                  key={`marking-${index}`}
-                  x={PITCH_WIDTH * (marking.x - (marking.width || 0) / 2) / 100}
-                  y={PITCH_HEIGHT * (marking.y - (marking.height || 0) / 2) / 100}
-                  width={PITCH_WIDTH * (marking.width || 10) / 100}
-                  height={PITCH_HEIGHT * (marking.height || 10) / 100}
-                  fill={`${marking.color}40`}
-                  stroke={marking.color}
-                  strokeWidth={2}
-                  strokeDasharray="5,5"
-                />
-              );
-            }
-            // Andra markings kan läggas till här
-            return null;
-          })}
+      {/* Markings för theory_practice scenarios */}
+          {('markings' in scenario.setup) && Array.isArray((scenario.setup as any).markings) &&
+            (scenario.setup as any).markings.map((marking: any, index: number) => {
+              if (marking.type === 'zone') {
+                return (
+                  <Rect
+                    key={`marking-${index}`}
+                    x={PITCH_WIDTH * (marking.x - (marking.width || 0) / 2) / 100}
+                    y={PITCH_HEIGHT * (marking.y - (marking.height || 0) / 2) / 100}
+                    width={PITCH_WIDTH * (marking.width || 10) / 100}
+                    height={PITCH_HEIGHT * (marking.height || 10) / 100}
+                    fill={`${marking.color}40`}
+                    stroke={marking.color}
+                    strokeWidth={2}
+                    strokeDasharray="5,5"
+                  />
+                );
+              }
+              return null;
+            })}
 
           {/* Boll (separat från spelare) */}
           <Circle
@@ -463,11 +463,11 @@ const GameScreen: React.FC<GameScreenProps> = ({ navigation, route }) => {
       <StatusBar hidden={true} /> {/* Hide status bar in landscape gaming */}
 
       {/* Theory Phase - Question Screen */}
-      {gameState === 'question' && scenario.type === 'theory_practice' && scenario.question && (
+      {gameState === 'question' && scenario.type === 'theory_practice' && 'question' in scenario && (scenario as any).question && (
         <QuestionScreen
-          question={scenario.question.text}
-          context={scenario.question.context}
-          options={scenario.question.options}
+          question={(scenario as any).question.text}
+          context={(scenario as any).question.context}
+          options={(scenario as any).question.options}
           onCorrectAnswer={handleQuestionCorrect}
           coaching={scenario.coaching}
         />
