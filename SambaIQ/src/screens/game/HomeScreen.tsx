@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import ProgressHeader from '../../components/common/ProgressHeader';
 import LevelUpModal from '../../components/common/LevelUpModal';
 import { UserProgress } from '../../data/progression';
-import PremiumTheme from '../../styles/PremiumTheme';
+import { PremiumTheme } from '../../styles/PremiumTheme';
 
 const { width, height } = Dimensions.get('window');
 
