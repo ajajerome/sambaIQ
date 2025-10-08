@@ -1,0 +1,34 @@
+name: EAS Update (preview)
+
+on:
+  push:
+    branches:
+      - preview
+
+jobs:
+  update-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install EAS CLI
+        run: npm i -g eas-cli
+
+      - name: Install dependencies
+        working-directory: SambaIQ
+        run: npm ci
+
+      - name: Publish OTA Update to preview
+        working-directory: SambaIQ
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          npx eas-cli whoami
+          npx eas-cli update:configure || true
+          npx eas-cli update --branch preview --message "CI update"
