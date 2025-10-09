@@ -1,0 +1,63 @@
+name: SambaIQ Auto Deploy to TestFlight
+on:
+  push:
+    branches: [ cursor/build-ai-football-app-with-react-native-9569, cursor/** ]
+  workflow_dispatch:
+    inputs:
+      message:
+        description: 'Build message'
+        required: false
+        default: 'Automated build'
+  
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🔄 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'SambaIQ/package-lock.json'
+          
+      - name: 🚀 Setup Expo CLI
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+          
+      - name: 📱 Install dependencies
+        run: |
+          cd SambaIQ
+          npm ci
+
+      - name: ✅ Validate project
+        run: |
+          cd SambaIQ
+          npm run validate
+          
+      - name: 🔨 Build for iOS Preview
+        run: |
+          cd SambaIQ
+          eas build --platform ios --profile preview --non-interactive --message "${{ github.event.inputs.message || 'Automated premium build' }}"
+          
+      - name: 📤 Submit to TestFlight
+        run: |
+          cd SambaIQ
+          eas submit --platform ios --latest --non-interactive
+          
+      - name: 📧 Notify Success
+        if: success()
+        run: |
+          echo "✅ SambaIQ successfully built and submitted to TestFlight!"
+          echo "🎯 Check email for TestFlight notification within 1-24 hours"
+          echo "📱 Build will be available for testing after Apple review"
+          
+      - name: 🚨 Notify Failure  
+        if: failure()
+        run: |
+          echo "❌ Build failed - check logs for details"
+          echo "🔧 Manual intervention may be required"
